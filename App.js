@@ -1,28 +1,72 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { NavigationContainer } from '@react-navigation/native';
 import { supabase } from './supabase';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import HomeScreen from './screens/HomeScreen';
 import ChatScreen from './screens/ChatScreen';
+import ProfileScreen from './screens/ProfileScreen';
+import UsernameScreen from './screens/UsernameScreen';
 
-export default function App() {
+const Tab = createBottomTabNavigator();
+
+function MainApp({ username }) {
+  const [chatOpen, setChatOpen] = useState(false);
+  const [aiName, setAiName] = useState('luna');
+  const { theme, accentColor } = useTheme();
+
+  if (chatOpen) {
+    return <ChatScreen aiName={aiName} onBack={() => setChatOpen(false)} />;
+  }
+
+  return (
+    <NavigationContainer>
+      <Tab.Navigator
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: theme.bg,
+            borderTopColor: theme.border,
+            borderTopWidth: 1,
+            paddingBottom: 8,
+            paddingTop: 8,
+            height: 60,
+          },
+          tabBarActiveTintColor: accentColor,
+          tabBarInactiveTintColor: theme.subtext,
+          tabBarLabelStyle: {
+            fontSize: 11,
+            fontWeight: '600',
+          },
+        }}
+      >
+        <Tab.Screen
+          name="Home"
+          options={{ tabBarLabel: 'spaces', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>🏠</Text> }}
+        >
+          {() => <HomeScreen onOpenChat={() => setChatOpen(true)} aiName={aiName} />}
+        </Tab.Screen>
+        <Tab.Screen
+          name="Profile"
+          options={{ tabBarLabel: 'you', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>👤</Text> }}
+        >
+          {() => <ProfileScreen username={username} />}
+        </Tab.Screen>
+      </Tab.Navigator>
+    </NavigationContainer>
+  );
+}
+
+function AuthScreen() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [age, setAge] = useState('');
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState(null);
-  const [chatOpen, setChatOpen] = useState(false);
-  const [aiName, setAiName] = useState('luna');
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-  }, []);
+  const { theme, accentColor } = useTheme();
 
   const handleAuth = async () => {
     if (!isLogin) {
@@ -47,45 +91,39 @@ export default function App() {
     setLoading(false);
   };
 
-  if (user && chatOpen) {
-    return <ChatScreen aiName={aiName} onBack={() => setChatOpen(false)} />;
-  }
-
-  if (user) {
-    return <HomeScreen onOpenChat={() => setChatOpen(true)} aiName={aiName} />;
-  }
-
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
       <StatusBar style="light" />
       <View style={styles.header}>
-        <Text style={styles.logo}>teenspace 🌙</Text>
-        <Text style={styles.tagline}>a space that gets you</Text>
+        <Text style={[styles.logo, { color: theme.text }]}>teenspace 🌙</Text>
+        <Text style={[styles.tagline, { color: theme.subtext }]}>a space that gets you</Text>
       </View>
       <View style={styles.form}>
-        <Text style={styles.title}>{isLogin ? 'Welcome back' : 'Join the space'}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>
+          {isLogin ? 'Welcome back' : 'Join the space'}
+        </Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.card, borderColor: theme.border, color: theme.text }]}
           placeholder="Email"
-          placeholderTextColor="#666"
+          placeholderTextColor={theme.subtext}
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
         />
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.card, borderColor: theme.border, color: theme.text }]}
           placeholder="Password"
-          placeholderTextColor="#666"
+          placeholderTextColor={theme.subtext}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
         />
         {!isLogin && (
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: theme.card, borderColor: theme.border, color: theme.text }]}
             placeholder="Your age (13-19 only)"
-            placeholderTextColor="#666"
+            placeholderTextColor={theme.subtext}
             value={age}
             onChangeText={setAge}
             keyboardType="numeric"
@@ -93,7 +131,7 @@ export default function App() {
           />
         )}
         <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
+          style={[styles.button, { backgroundColor: accentColor }, loading && styles.buttonDisabled]}
           onPress={handleAuth}
           disabled={loading}
         >
@@ -102,7 +140,7 @@ export default function App() {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
-          <Text style={styles.switchText}>
+          <Text style={[styles.switchText, { color: accentColor }]}>
             {isLogin ? "New here? Join teenspace" : "Already have an account? Log in"}
           </Text>
         </TouchableOpacity>
@@ -111,67 +149,73 @@ export default function App() {
   );
 }
 
+function AppContent() {
+  const [user, setUser] = useState(null);
+  const [username, setUsername] = useState(null);
+  const [checkingUsername, setCheckingUsername] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) checkUsername(session.user.id);
+    });
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) checkUsername(session.user.id);
+      else setUsername(null);
+    });
+  }, []);
+
+  const checkUsername = async (userId) => {
+    setCheckingUsername(true);
+    const { data } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', userId)
+      .single();
+    setUsername(data?.username ?? null);
+    setCheckingUsername(false);
+  };
+
+  if (!user) return <AuthScreen />;
+  if (checkingUsername) return null;
+  if (!username) return <UsernameScreen onDone={(name) => setUsername(name)} />;
+  return <MainApp username={username} />;
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#080808',
-  },
+  container: { flex: 1 },
   header: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logo: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#fff',
-    letterSpacing: 1,
-  },
-  tagline: {
-    fontSize: 14,
-    color: '#888',
-    marginTop: 8,
-  },
-  form: {
-    flex: 2,
-    paddingHorizontal: 30,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 30,
-  },
+  logo: { fontSize: 36, fontWeight: 'bold', letterSpacing: 1 },
+  tagline: { fontSize: 14, marginTop: 8 },
+  form: { flex: 2, paddingHorizontal: 30 },
+  title: { fontSize: 24, fontWeight: '600', marginBottom: 30 },
   input: {
-    backgroundColor: '#1a1a1a',
     borderRadius: 12,
     padding: 16,
-    color: '#fff',
     fontSize: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#222',
   },
   button: {
-    backgroundColor: '#7c3aed',
     borderRadius: 12,
     padding: 18,
     alignItems: 'center',
     marginTop: 8,
   },
-  buttonDisabled: {
-    backgroundColor: '#4a1d96',
-    opacity: 0.7,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  switchText: {
-    color: '#7c3aed',
-    textAlign: 'center',
-    marginTop: 20,
-    fontSize: 14,
-  },
+  buttonDisabled: { opacity: 0.7 },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  switchText: { textAlign: 'center', marginTop: 20, fontSize: 14 },
 });

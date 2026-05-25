@@ -10,6 +10,7 @@ import HomeScreen from './screens/HomeScreen';
 import ChatScreen from './screens/ChatScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import UsernameScreen from './screens/UsernameScreen';
+import JournalScreen from './screens/JournalScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -45,13 +46,30 @@ function MainApp({ username }) {
       >
         <Tab.Screen
           name="Home"
-          options={{ tabBarLabel: 'spaces', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>🏠</Text> }}
+          options={{
+            tabBarLabel: 'spaces',
+            tabBarIcon: () => <Text style={{ fontSize: 20 }}>🏠</Text>
+          }}
         >
           {() => <HomeScreen onOpenChat={() => setChatOpen(true)} aiName={aiName} />}
         </Tab.Screen>
+
+        <Tab.Screen
+          name="Journal"
+          options={{
+            tabBarLabel: 'journal',
+            tabBarIcon: () => <Text style={{ fontSize: 20 }}>📓</Text>
+          }}
+        >
+          {() => <JournalScreen />}
+        </Tab.Screen>
+
         <Tab.Screen
           name="Profile"
-          options={{ tabBarLabel: 'you', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>👤</Text> }}
+          options={{
+            tabBarLabel: 'you',
+            tabBarIcon: () => <Text style={{ fontSize: 20 }}>👤</Text>
+          }}
         >
           {() => <ProfileScreen username={username} />}
         </Tab.Screen>
@@ -193,28 +211,13 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  header: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   logo: { fontSize: 36, fontWeight: 'bold', letterSpacing: 1 },
   tagline: { fontSize: 14, marginTop: 8 },
   form: { flex: 2, paddingHorizontal: 30 },
   title: { fontSize: 24, fontWeight: '600', marginBottom: 30 },
-  input: {
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-  },
-  button: {
-    borderRadius: 12,
-    padding: 18,
-    alignItems: 'center',
-    marginTop: 8,
-  },
+  input: { borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 16, borderWidth: 1 },
+  button: { borderRadius: 12, padding: 18, alignItems: 'center', marginTop: 8 },
   buttonDisabled: { opacity: 0.7 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   switchText: { textAlign: 'center', marginTop: 20, fontSize: 14 },

@@ -1,9 +1,11 @@
+import VibesScreen from './screens/VibesScreen';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from './supabase';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import HomeScreen from './screens/HomeScreen';
@@ -11,6 +13,7 @@ import ChatScreen from './screens/ChatScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import UsernameScreen from './screens/UsernameScreen';
 import JournalScreen from './screens/JournalScreen';
+import HelpScreen from './screens/HelpScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -48,7 +51,9 @@ function MainApp({ username }) {
           name="Home"
           options={{
             tabBarLabel: 'spaces',
-            tabBarIcon: () => <Text style={{ fontSize: 20 }}>🏠</Text>
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />
+            ),
           }}
         >
           {() => <HomeScreen onOpenChat={() => setChatOpen(true)} aiName={aiName} />}
@@ -58,17 +63,45 @@ function MainApp({ username }) {
           name="Journal"
           options={{
             tabBarLabel: 'journal',
-            tabBarIcon: () => <Text style={{ fontSize: 20 }}>📓</Text>
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'book' : 'book-outline'} size={22} color={color} />
+            ),
           }}
         >
           {() => <JournalScreen />}
         </Tab.Screen>
 
         <Tab.Screen
+          name="Help"
+          options={{
+            tabBarLabel: 'help',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'heart' : 'heart-outline'} size={22} color={color} />
+            ),
+          }}
+        >
+          {() => <HelpScreen />}
+        </Tab.Screen>
+
+        <Tab.Screen
+          name="Vibes"
+          options={{
+            tabBarLabel: 'vibes',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'sparkles' : 'sparkles-outline'} size={22} color={color} />
+            ),
+          }}
+        >
+          {() => <VibesScreen />}
+        </Tab.Screen>
+
+        <Tab.Screen
           name="Profile"
           options={{
             tabBarLabel: 'you',
-            tabBarIcon: () => <Text style={{ fontSize: 20 }}>👤</Text>
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
+            ),
           }}
         >
           {() => <ProfileScreen username={username} />}
@@ -113,7 +146,7 @@ function AuthScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
       <StatusBar style="light" />
       <View style={styles.header}>
-        <Text style={[styles.logo, { color: theme.text }]}>teenspace 🌙</Text>
+        <Text style={[styles.logo, { color: theme.text }]}>teenspace</Text>
         <Text style={[styles.tagline, { color: theme.subtext }]}>a space that gets you</Text>
       </View>
       <View style={styles.form}>

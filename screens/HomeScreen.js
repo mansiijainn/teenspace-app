@@ -92,7 +92,7 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna' }) {
             <Text style={[styles.greeting, { color: theme.text }]}>hey</Text>
             <View style={[styles.onlineBadge, { backgroundColor: theme.card, borderColor: theme.border }]}>
               <Animated.View style={[styles.onlineDot, { opacity: pulse }]} />
-              <Text style={[styles.onlineText, { color: theme.subtext }]}>live</Text>
+              <Text style={[styles.onlineText, { color: theme.subtext }]}>{liveLabel}</Text>
             </View>
           </View>
           <Text style={[styles.subtitle, { color: theme.subtext }]}>how we feeling today?</Text>

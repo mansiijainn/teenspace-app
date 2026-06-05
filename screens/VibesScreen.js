@@ -7,11 +7,11 @@ import { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 
 import BreatheGame from './games/BreatheGame';
-//import ColorMatchGame from './games/ColorMatchGame';
+import ColorMatchGame from './games/ColorMatchGame';
 import BubblesGame from './games/BubblesGame';
 import GroundingGame from './games/GroundingGame';
-//import MemoryGame from './games/MemoryGame';
-//import GratitudeGame from './games/GratitudeGame';
+import MemoryGame from './games/MemoryGame';
+import GratitudeGame from './games/GratitudeGame';
 
 const Placeholder = () => null;
 
@@ -36,7 +36,7 @@ const GAMES = [
     duration: '2 min',
     mood: 'focus',
     gradient: ['#7eb4ff', '#5e8aff'],   // blue — focus
-    Component: Placeholder,
+    Component: ColorMatchGame,
   },
   {
     id: 'bubbles',
@@ -69,7 +69,7 @@ const GAMES = [
     duration: '3 min',
     mood: 'distract',
     gradient: ['#ffb547', '#ff7a3c'],   // amber — warm
-    Component: Placeholder,
+    Component: MemoryGame,
   },
   {
     id: 'gratitude',
@@ -80,7 +80,7 @@ const GAMES = [
     duration: '30 sec',
     mood: 'lift',
     gradient: ['#ffd84d', '#ff9a3c'],   // sunshine
-    Component: Placeholder,
+    Component: GratitudeGame,
   },
 ];
 

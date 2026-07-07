@@ -39,7 +39,7 @@ export default function ProfileScreen({ username }) {
             </Text>
           </View>
           <Text style={[styles.username, { color: theme.text }]}>@{username}</Text>
-          <Text style={[styles.bio, { color: theme.subtext }]}>anonymous • teenspace member</Text>
+          <Text style={[styles.bio, { color: theme.subtext }]}>anonymous • spillr member</Text>
         </View>
 
         {/* Theme Mode */}

@@ -63,7 +63,7 @@ const SCREENING_QUESTIONS = [
   },
   {
     id: 'agreement',
-    title: 'TeenSpace is listening-first, not advice-first. do you agree?',
+    title: 'spillr is for listening first. cool with that?',
     options: [
       { label: 'i agree to listen first and give advice only when asked', value: 'agree' },
       { label: 'i do not agree', value: 'reject' },
@@ -82,7 +82,7 @@ function getScreeningFailure(answers) {
 
   return {
     questionId: failed.id,
-    reason: 'TeenSpace is a listening-first community. Based on your answers, this may not be the right fit right now.',
+    reason: 'spillr is built for listening, not fixing. based on your answers, this might not be the right fit right now.',
   };
 }
 
@@ -297,7 +297,7 @@ function AuthScreen() {
         <View style={styles.rejectionScreen}>
           <Text style={[styles.title, { color: theme.text }]}>not a fit right now</Text>
           <Text style={[styles.screeningIntro, { color: theme.subtext }]}>
-            TeenSpace is built for listening-first support, not unsolicited advice, judgement, flirting, or pressure.
+            spillr is for listening, not fixing. no judgement, no flirting, no pressure.
           </Text>
           <View style={[styles.rejectionBox, { borderColor: '#dc2626' }]}>
             <Text style={styles.rejectionTitle}>signup could not continue</Text>
@@ -324,7 +324,7 @@ function AuthScreen() {
       >
         <Text style={[styles.title, { color: theme.text }]}>before you enter</Text>
         <Text style={[styles.screeningIntro, { color: theme.subtext }]}>
-          TeenSpace is for strangers to listen without judgement, pressure, flirting, or unsolicited advice.
+          spillr is for strangers to listen without judgement, pressure, flirting, or random advice.
         </Text>
 
         {SCREENING_QUESTIONS.map((question) => (
@@ -373,7 +373,7 @@ function AuthScreen() {
   const renderCredentials = () => (
     <View style={styles.form}>
       <Text style={[styles.title, { color: theme.text }]}>
-        {isLogin ? 'Welcome back' : 'Join the space'}
+        {isLogin ? 'welcome back' : 'join spillr'}
       </Text>
       <TextInput
         style={[styles.input, { backgroundColor: theme.card, borderColor: theme.border, color: theme.text }]}
@@ -414,7 +414,7 @@ function AuthScreen() {
       </TouchableOpacity>
       <TouchableOpacity onPress={switchMode}>
         <Text style={[styles.switchText, { color: accentColor }]}>
-          {isLogin ? "New here? Join teenspace" : "Already have an account? Log in"}
+          {isLogin ? "new here? join spillr" : "already have an account? log in"}
         </Text>
       </TouchableOpacity>
     </View>
@@ -425,8 +425,8 @@ function AuthScreen() {
       <StatusBar style="light" />
       {signupStep === 'credentials' && (
         <View style={styles.header}>
-          <Text style={[styles.logo, { color: theme.text }]}>teenspace</Text>
-          <Text style={[styles.tagline, { color: theme.subtext }]}>a space that gets you</Text>
+          <Text style={[styles.logo, { color: theme.text }]}>spillr</Text>
+          <Text style={[styles.tagline, { color: theme.subtext }]}>spill it. no judgement.</Text>
         </View>
       )}
       {signupStep === 'screening' && !isLogin ? renderScreening() : renderCredentials()}

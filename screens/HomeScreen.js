@@ -7,6 +7,7 @@ import ChannelScreen from './ChannelScreen';
 import { useState, useEffect, useRef } from 'react';
 import { Animated, Easing } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { trackAppOpen } from '../utils/safetySignals';
 
 const channels = [
   { id: 1, name: 'rants',         icon: 'flame',    desc: 'let it out, no judgment' },
@@ -46,6 +47,7 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna' }) {
   const [editingName, setEditingName]     = useState(false);
   const [tempName, setTempName]           = useState(aiName);
   const [localAiName, setLocalAiName]     = useState(aiName);
+  const [openNote, setOpenNote]           = useState(null);
   const { theme, accentColor, gradient }  = useTheme();
 
   // Rotating vibe
@@ -61,6 +63,10 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna' }) {
         Animated.timing(pulse, { toValue: 1,   duration: 1000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
       ])
     ).start();
+  }, []);
+
+  useEffect(() => {
+    trackAppOpen().then(setOpenNote);
   }, []);
 
   // Subtle AI card glow animation
@@ -96,6 +102,16 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna' }) {
             </View>
           </View>
           <Text style={[styles.subtitle, { color: theme.subtext }]}>how we feeling today?</Text>
+
+          {openNote && (
+            <View style={[styles.openNote, { backgroundColor: theme.card, borderColor: accentColor + '55' }]}>
+              <Text style={[styles.openNoteTitle, { color: accentColor }]}>{openNote.title}</Text>
+              <Text style={[styles.openNoteBody, { color: theme.text }]}>{openNote.body}</Text>
+              {openNote.streakNote && (
+                <Text style={[styles.openNoteTiny, { color: theme.subtext }]}>{openNote.streakNote}</Text>
+              )}
+            </View>
+          )}
 
           {/* Vibe of the day */}
           <View style={[styles.vibePill, { borderColor: accentColor + '40' }]}>
@@ -183,6 +199,15 @@ const styles = StyleSheet.create({
   greetingRow:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   greeting:       { fontSize: 44, fontWeight: '800', letterSpacing: -1.5, lineHeight: 50 },
   subtitle:       { fontSize: 15, marginTop: 4, letterSpacing: -0.2 },
+  openNote: {
+    marginTop: 18,
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+  },
+  openNoteTitle:  { fontSize: 12, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 5 },
+  openNoteBody:   { fontSize: 17, fontWeight: '700', lineHeight: 23, letterSpacing: -0.2 },
+  openNoteTiny:   { fontSize: 12, marginTop: 8, lineHeight: 18 },
 
   onlineBadge: {
     flexDirection: 'row',

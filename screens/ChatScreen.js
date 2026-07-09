@@ -1,8 +1,9 @@
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
+import { takePendingLunaMessages } from '../utils/safetySignals';
 
 // API key from .env — must be prefixed with EXPO_PUBLIC_ to be accessible in client code
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
@@ -40,6 +41,14 @@ export default function ChatScreen({ aiName = 'luna', onBack }) {
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef(null);
   const { theme, accentColor } = useTheme();
+
+  useEffect(() => {
+    takePendingLunaMessages().then((pending) => {
+      if (pending.length) {
+        setMessages(prev => [...prev, ...pending]);
+      }
+    });
+  }, []);
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;

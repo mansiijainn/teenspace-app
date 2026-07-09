@@ -14,6 +14,7 @@ import ProfileScreen from './screens/ProfileScreen';
 import UsernameScreen from './screens/UsernameScreen';
 import JournalScreen from './screens/JournalScreen';
 import HelpScreen from './screens/HelpScreen';
+import PostsScreen from './screens/PostsScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -106,12 +107,12 @@ function MainApp({ username }) {
             borderTopWidth: 1,
             paddingBottom: 8,
             paddingTop: 8,
-            height: 60,
+            height: 64,
           },
           tabBarActiveTintColor: accentColor,
           tabBarInactiveTintColor: theme.subtext,
           tabBarLabelStyle: {
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: '600',
           },
         }}
@@ -126,6 +127,18 @@ function MainApp({ username }) {
           }}
         >
           {() => <HomeScreen onOpenChat={() => setChatOpen(true)} aiName={aiName} />}
+        </Tab.Screen>
+
+        <Tab.Screen
+          name="Posts"
+          options={{
+            tabBarLabel: 'posts',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'chatbubble' : 'chatbubble-outline'} size={21} color={color} />
+            ),
+          }}
+        >
+          {() => <PostsScreen />}
         </Tab.Screen>
 
         <Tab.Screen

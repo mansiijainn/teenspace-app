@@ -6,7 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import { takePendingLunaMessages } from '../utils/safetySignals';
 
 // API key from .env — must be prefixed with EXPO_PUBLIC_ to be accessible in client code
-const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
 
 const SYSTEM_PROMPT = `You are Luna, a warm and empathetic AI companion for teenagers aged 13-19 using a mental wellness app called spillr.
 
@@ -52,9 +52,8 @@ export default function ChatScreen({ aiName = 'luna', onBack }) {
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
-
-    // Catch missing key early
-    if (!GEMINI_API_KEY) {
+  
+    if (!OPENAI_API_KEY) {
       setMessages(prev => [
         ...prev,
         { role: 'user', content: input.trim() },
@@ -63,52 +62,47 @@ export default function ChatScreen({ aiName = 'luna', onBack }) {
       setInput('');
       return;
     }
-
+  
     const userMessage = { role: 'user', content: input.trim() };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput('');
     setLoading(true);
-
+  
     try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-            contents: updatedMessages.map(msg => ({
-              role: msg.role === 'assistant' ? 'model' : 'user',
-              parts: [{ text: msg.content }]
-            })),
-            generationConfig: {
-              temperature: 0.9,
-              maxOutputTokens: 200,
-            },
-          }),
-        }
-      );
-
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: SYSTEM_PROMPT },
+            ...updatedMessages.map(m => ({ role: m.role, content: m.content })),
+          ],
+          temperature: 0.9,
+          max_tokens: 200,
+        }),
+      });
+  
       const data = await response.json();
-
-      // Surface API errors so we can debug
+  
       if (!response.ok) {
-        console.log('Gemini API error:', data);
+        console.log('OpenAI API error:', data);
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: `something's off on my end (${data?.error?.message || response.status}). try again in a sec?`,
+          content: `something's off on my end (${data?.error?.message || response.status}). try again?`,
         }]);
         return;
       }
-
-      const aiReply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  
+      const aiReply = data.choices?.[0]?.message?.content;
       if (aiReply) {
         setMessages(prev => [...prev, { role: 'assistant', content: aiReply.trim() }]);
         setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 300);
       } else {
-        // Sometimes safety filters block the response
-        console.log('No content in response:', data);
         setMessages(prev => [...prev, {
           role: 'assistant',
           content: "hmm, i don't have words for that one. wanna say it differently?",
@@ -123,6 +117,8 @@ export default function ChatScreen({ aiName = 'luna', onBack }) {
     }
     setLoading(false);
   };
+
+   
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]} edges={['top', 'bottom']}>

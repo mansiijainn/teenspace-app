@@ -57,7 +57,7 @@ export default function ProfileScreen({ username }) {
                 onPress={() => setMode(m)}
               >
                 <Text style={[styles.toggleText, { color: mode === m ? '#fff' : theme.subtext }]}>
-                  {m === 'dark' ? '🌙 dark' : '☀️ light'}
+                  {m === 'dark' ? 'dark' : 'light'}
                 </Text>
               </TouchableOpacity>
             ))}

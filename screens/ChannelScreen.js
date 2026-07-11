@@ -1,3 +1,5 @@
+import ReportSheet from '../components/ReportSheet';
+import { useState } from 'react';   // if not already imported
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform, Alert, Image, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect, useRef } from 'react';
@@ -7,6 +9,7 @@ import { moderatePost } from '../utils/moderator';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 
+const [reportPost, setReportPost] = useState(null);
 const BOT_MESSAGES = {
   self_harm: "hey, i noticed what you wrote and i just want to check in 💙 you don't have to go through this alone. please reach out to iCall at 9152987821 — they're really good listeners.",
   bullying: "this isn't the kind of space we want to build here. everyone deserves to feel safe. let's keep it kind 🙏",

@@ -1,3 +1,6 @@
+import WelcomeRitual from './screens/WelcomeRitual';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import NotificationOnboardingScreen from './screens/NotificationOnboardingScreen';
 import VibesScreen from './screens/VibesScreen';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
@@ -16,7 +19,10 @@ import JournalScreen from './screens/JournalScreen';
 import HelpScreen from './screens/HelpScreen';
 import PostsScreen from './screens/PostsScreen';
 
+const NOTIF_ONBOARDED_KEY = '@teenspace_notif_onboarded';
 const Tab = createBottomTabNavigator();
+const LAST_OPEN_KEY = '@teenspace_last_open';
+
 
 const SCREENING_QUESTIONS = [
   {
@@ -451,6 +457,8 @@ function AppContent() {
   const [user, setUser] = useState(null);
   const [username, setUsername] = useState(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
+  const [notifOnboarded, setNotifOnboarded] = useState(null);
+  const [showRitual, setShowRitual] = useState(null); // null = checking
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -460,9 +468,33 @@ function AppContent() {
     supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) checkUsername(session.user.id);
-      else setUsername(null);
+      else {
+        setUsername(null);
+        setNotifOnboarded(null);
+        setShowRitual(null);
+      }
     });
   }, []);
+
+  useEffect(() => {
+    if (username) {
+      AsyncStorage.getItem('@teenspace_notif_onboarded').then(val => {
+        setNotifOnboarded(val === 'true');
+      });
+      checkFirstOpenToday();
+    }
+  }, [username]);
+
+  const checkFirstOpenToday = async () => {
+    const lastOpen = await AsyncStorage.getItem(LAST_OPEN_KEY);
+    const today    = new Date().toDateString();
+    if (lastOpen !== today) {
+      setShowRitual(true);
+      await AsyncStorage.setItem(LAST_OPEN_KEY, today);
+    } else {
+      setShowRitual(false);
+    }
+  };
 
   const checkUsername = async (userId) => {
     setCheckingUsername(true);
@@ -475,9 +507,18 @@ function AppContent() {
     setCheckingUsername(false);
   };
 
+  const finishNotifOnboarding = async () => {
+    await AsyncStorage.setItem('@teenspace_notif_onboarded', 'true');
+    setNotifOnboarded(true);
+  };
+
   if (!user) return <AuthScreen />;
   if (checkingUsername) return null;
   if (!username) return <UsernameScreen onDone={(name) => setUsername(name)} />;
+  if (notifOnboarded === null) return null;
+  if (!notifOnboarded) return <NotificationOnboardingScreen onDone={finishNotifOnboarding} />;
+  if (showRitual === null) return null;
+  if (showRitual) return <WelcomeRitual onDone={() => setShowRitual(false)} />;
   return <MainApp username={username} />;
 }
 

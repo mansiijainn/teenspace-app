@@ -24,7 +24,7 @@ const GAMES = [
     icon: 'leaf-outline',
     duration: '1 min',
     mood: 'calm',
-    gradient: ['#7ed4ad', '#4fbf94'],   // green — calm
+    gradient: ['#c9dfc0', '#9ebd8f'],
     Component: BreatheGame,
   },
   {
@@ -35,7 +35,7 @@ const GAMES = [
     icon: 'color-palette-outline',
     duration: '2 min',
     mood: 'focus',
-    gradient: ['#7eb4ff', '#5e8aff'],   // blue — focus
+    gradient: ['#c9dcff', '#88afe9'],
     Component: ColorMatchGame,
   },
   {
@@ -46,7 +46,7 @@ const GAMES = [
     icon: 'ellipse-outline',
     duration: 'endless',
     mood: 'release',
-    gradient: ['#ff9670', '#ff4e7a'],   // peach — accent
+    gradient: ['#f5cabc', '#eba18c'],
     Component: BubblesGame,
   },
   {
@@ -57,7 +57,7 @@ const GAMES = [
     icon: 'flower-outline',
     duration: '2 min',
     mood: 'anxious',
-    gradient: ['#c47aff', '#8a5cff'],   // purple — grounding
+    gradient: ['#d7d1ff', '#aca7df'],
     Component: GroundingGame,
   },
   {
@@ -68,7 +68,7 @@ const GAMES = [
     icon: 'grid-outline',
     duration: '3 min',
     mood: 'distract',
-    gradient: ['#ffb547', '#ff7a3c'],   // amber — warm
+    gradient: ['#f6e48c', '#efb8a7'],
     Component: MemoryGame,
   },
   {
@@ -79,7 +79,7 @@ const GAMES = [
     icon: 'sunny-outline',
     duration: '30 sec',
     mood: 'lift',
-    gradient: ['#ffd84d', '#ff9a3c'],   // sunshine
+    gradient: ['#efd96f', '#f4e2d8'],
     Component: GratitudeGame,
   },
 ];
@@ -171,7 +171,7 @@ export default function VibesScreen() {
               >
                 <View style={styles.cardTop}>
                   <View style={styles.iconWrap}>
-                    <Ionicons name={game.icon} size={22} color="#fff" />
+                    <Ionicons name={game.icon} size={22} color="#18151d" />
                   </View>
                   <Text style={styles.duration}>{game.duration}</Text>
                 </View>
@@ -192,7 +192,7 @@ export default function VibesScreen() {
           </Text>
         </View>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 120 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -200,10 +200,10 @@ export default function VibesScreen() {
 
 const styles = StyleSheet.create({
   container:      { flex: 1 },
-  scroll:         { paddingHorizontal: 20, paddingTop: 8 },
+  scroll:         { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 120 },
 
-  title:          { fontSize: 44, fontWeight: '800', letterSpacing: -1.5, lineHeight: 50 },
-  subtitle:       { fontSize: 15, marginTop: 4, marginBottom: 20, letterSpacing: -0.2 },
+  title:          { fontSize: 40, fontWeight: '900', lineHeight: 46 },
+  subtitle:       { fontSize: 15, marginTop: 4, marginBottom: 20 },
 
   filterScroll:   { marginHorizontal: -20, marginBottom: 20 },
   filterRow:      { paddingHorizontal: 20, gap: 8 },
@@ -211,18 +211,18 @@ const styles = StyleSheet.create({
   filterText:     { fontSize: 13, fontWeight: '600' },
 
   grid:           { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 20 },
-  cardWrap:       { width: '47.5%', aspectRatio: 0.85, borderRadius: 22, overflow: 'hidden' },
+  cardWrap:       { width: '47.5%', aspectRatio: 0.85, borderRadius: 28, overflow: 'hidden' },
   card:           { flex: 1, padding: 16, justifyContent: 'space-between' },
   cardTop:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   iconWrap: {
     width: 40, height: 40, borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.22)',
+    backgroundColor: 'rgba(255,255,255,0.34)',
     alignItems: 'center', justifyContent: 'center',
   },
-  duration:       { color: 'rgba(255,255,255,0.85)', fontSize: 11, fontWeight: '600', letterSpacing: 0.5, textTransform: 'uppercase' },
+  duration:       { color: 'rgba(24,21,29,0.66)', fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
   cardBottom:     { gap: 4 },
-  cardTitle:      { color: '#fff', fontSize: 18, fontWeight: '800', letterSpacing: -0.3 },
-  cardDesc:       { color: 'rgba(255,255,255,0.85)', fontSize: 11, lineHeight: 16, letterSpacing: -0.1 },
+  cardTitle:      { color: '#18151d', fontSize: 18, fontWeight: '900' },
+  cardDesc:       { color: 'rgba(24,21,29,0.7)', fontSize: 11, lineHeight: 16 },
 
   reminder:       { flexDirection: 'row', gap: 10, padding: 14, borderRadius: 14, borderWidth: 0.5, alignItems: 'flex-start' },
   reminderText:   { flex: 1, fontSize: 12, lineHeight: 18, letterSpacing: -0.1 },

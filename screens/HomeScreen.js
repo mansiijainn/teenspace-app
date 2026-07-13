@@ -1,66 +1,60 @@
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput, Pressable } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput, Pressable, Animated, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import ChannelScreen from './ChannelScreen';
 import { useState, useEffect, useRef } from 'react';
-import { Animated, Easing } from 'react-native';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme, moodColors } from '../context/ThemeContext';
 import { trackAppOpen } from '../utils/safetySignals';
 
 const channels = [
-  { id: 1, name: 'rants',         icon: 'flame',    desc: 'let it out, no judgment' },
-  { id: 2, name: 'wins',          icon: 'trophy',   desc: 'flex anything, big or small' },
-  { id: 3, name: 'school',        icon: 'school',   desc: 'finals, drama, all of it' },
-  { id: 4, name: 'home life',     icon: 'home',     desc: 'family stuff, safe space' },
-  { id: 5, name: 'mental health', icon: 'pulse',    desc: 'real talk, we got you' },
-  { id: 6, name: 'random',        icon: 'sparkles', desc: 'anything and everything' },
+  { id: 1, name: 'rants', icon: 'flame', desc: 'let it out', color: '#e58d75' },
+  { id: 2, name: 'wins', icon: 'trophy', desc: 'tiny flexes', color: '#efd96f' },
+  { id: 3, name: 'school', icon: 'school', desc: 'finals, drama', color: '#88afe9' },
+  { id: 4, name: 'home life', icon: 'home', desc: 'safe space', color: '#ead9d2' },
+  { id: 5, name: 'mental health', icon: 'pulse', desc: 'real talk', color: '#aca7df' },
+  { id: 6, name: 'random', icon: 'sparkles', desc: 'anything', color: '#9ebd8f' },
 ];
 
-// Vibe of the day rotates — feels alive
-const VIBES = [
-  'soft launch szn',
-  'main character energy',
-  'unhinged but make it cute',
-  'romanticizing the mundane',
-  'low effort high reward',
-  'delulu is the solulu',
-  'feral girl summer',
-  'cozy chaos',
+const MOODS = [
+  { label: 'happy', face: '☻', color: moodColors.happy },
+  { label: 'calm', face: '◡', color: moodColors.calm },
+  { label: 'sad', face: '☁', color: moodColors.sad },
+  { label: 'mad', face: '!', color: moodColors.angry },
+  { label: 'soft', face: '♡', color: moodColors.soft },
 ];
 
-// Playful "live" replacements that rotate
-const LIVE_LABELS = [
-  'we vibin',
-  'no thoughts',
-  'lurking',
-  'chronically online',
-  'unbothered',
-  'manifesting',
-  'in my era',
-  'awake',
+const PROMPTS = [
+  'what needs to leave your head today?',
+  'what did you make it through yesterday?',
+  'what feeling is taking up the most space?',
+  'what would feel 2 percent lighter right now?',
 ];
+
+const LIVE_LABELS = ['awake', 'listening', 'soft mode', 'no judgement', 'here'];
 
 export default function HomeScreen({ onOpenChat, aiName = 'luna' }) {
   const [activeChannel, setActiveChannel] = useState(null);
-  const [editingName, setEditingName]     = useState(false);
-  const [tempName, setTempName]           = useState(aiName);
-  const [localAiName, setLocalAiName]     = useState(aiName);
-  const [openNote, setOpenNote]           = useState(null);
-  const { theme, accentColor, gradient }  = useTheme();
+  const [editingName, setEditingName] = useState(false);
+  const [tempName, setTempName] = useState(aiName);
+  const [localAiName, setLocalAiName] = useState(aiName);
+  const [openNote, setOpenNote] = useState(null);
+  const { theme, accentColor, gradient } = useTheme();
 
-  // Rotating vibe
-  const vibe      = VIBES[new Date().getDate() % VIBES.length];
+  const prompt = PROMPTS[new Date().getDate() % PROMPTS.length];
   const liveLabel = LIVE_LABELS[new Date().getDate() % LIVE_LABELS.length];
+  const hour = new Date().getHours();
+  const isLateNight = hour >= 0 && hour < 5;
+  const greeting = isLateNight ? 'rough night?' : 'hello, you';
+  const reflection = isLateNight ? "i'm awake too." : 'how do you feel about your current emotions?';
 
-  // Pulsing online dot
   const pulse = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulse, { toValue: 0.4, duration: 1000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1,   duration: 1000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0.35, duration: 950, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 950, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
       ])
     ).start();
   }, []);
@@ -69,232 +63,191 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna' }) {
     trackAppOpen().then(setOpenNote);
   }, []);
 
-  // Subtle AI card glow animation
-  const glow = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(glow, { toValue: 1, duration: 3000, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
-        Animated.timing(glow, { toValue: 0, duration: 3000, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
-      ])
-    ).start();
-  }, []);
-
   const tap = () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  const handleChannel = (channel) => { tap(); setActiveChannel(channel); };
-  const handleAI = () => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onOpenChat(); };
+  const handleChannel = (channel) => {
+    tap();
+    setActiveChannel(channel);
+  };
+  const handleAI = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onOpenChat();
+  };
 
   if (activeChannel) {
     return <ChannelScreen channel={activeChannel} onBack={() => setActiveChannel(null)} />;
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-
-        {/* Big greeting block */}
-        <View style={styles.headerBlock}>
-          <View style={styles.greetingRow}>
-            <Text style={[styles.greeting, { color: theme.text }]}>hey</Text>
-            <View style={[styles.onlineBadge, { backgroundColor: theme.card, borderColor: theme.border }]}>
-              <Animated.View style={[styles.onlineDot, { opacity: pulse }]} />
-              <Text style={[styles.onlineText, { color: theme.subtext }]}>{liveLabel}</Text>
-            </View>
+        <View style={styles.topRow}>
+          <View>
+            <Text style={[styles.kicker, { color: theme.subtext }]}>daily reflection</Text>
+            <Text style={[styles.title, { color: theme.text }]}>{greeting}</Text>
           </View>
-          <Text style={[styles.subtitle, { color: theme.subtext }]}>how we feeling today?</Text>
-
-          {openNote && (
-            <View style={[styles.openNote, { backgroundColor: theme.card, borderColor: accentColor + '55' }]}>
-              <Text style={[styles.openNoteTitle, { color: accentColor }]}>{openNote.title}</Text>
-              <Text style={[styles.openNoteBody, { color: theme.text }]}>{openNote.body}</Text>
-              {openNote.streakNote && (
-                <Text style={[styles.openNoteTiny, { color: theme.subtext }]}>{openNote.streakNote}</Text>
-              )}
-            </View>
-          )}
-
-          {/* Vibe of the day */}
-          <View style={[styles.vibePill, { borderColor: accentColor + '40' }]}>
-            <Text style={[styles.vibeLabel, { color: accentColor }]}>today's vibe</Text>
-            <Text style={[styles.vibeText, { color: theme.text }]}>{vibe}</Text>
+          <View style={[styles.liveBadge, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            <Animated.View style={[styles.liveDot, { backgroundColor: accentColor, opacity: pulse }]} />
+            <Text style={[styles.liveText, { color: theme.subtext }]}>{liveLabel}</Text>
           </View>
         </View>
 
-        {/* AI Card — full gradient */}
-        <Pressable onPress={handleAI} style={({ pressed }) => [styles.aiCardWrap, pressed && { transform: [{ scale: 0.98 }] }]}>
-          <LinearGradient
-            colors={gradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.aiCard}
-          >
-            <View style={styles.aiCardLeft}>
-              <View style={styles.aiIconWrap}>
-                <Ionicons name="moon" size={28} color="#fff" />
-              </View>
-              <View style={{ flex: 1 }}>
-                {editingName ? (
-                  <TextInput
-                    style={styles.aiNameInput}
-                    value={tempName}
-                    onChangeText={setTempName}
-                    autoFocus
-                    onBlur={() => { setLocalAiName(tempName || 'luna'); setEditingName(false); }}
-                    onSubmitEditing={() => { setLocalAiName(tempName || 'luna'); setEditingName(false); }}
-                    maxLength={20}
-                  />
-                ) : (
-                  <View style={styles.aiNameRow}>
-                    <Text style={styles.aiName}>{localAiName}</Text>
-                    <TouchableOpacity onPress={() => { tap(); setTempName(localAiName); setEditingName(true); }}>
-                      <Ionicons name="pencil" size={13} color="rgba(255,255,255,0.7)" />
-                    </TouchableOpacity>
-                  </View>
-                )}
-                <Text style={styles.aiDesc}>your ai, here whenever</Text>
-              </View>
+        <LinearGradient colors={gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.reflectionCard}>
+          <View style={styles.cardLogo}>
+            <View style={styles.diamond} />
+            <View style={[styles.diamond, styles.diamondOffset]} />
+          </View>
+          <Text style={styles.reflectionTitle}>{reflection}</Text>
+          <Pressable style={styles.reflectionInput} onPress={handleAI}>
+            <Text style={styles.reflectionPlaceholder}>{prompt}</Text>
+            <Ionicons name="arrow-forward" size={18} color="#18151d" />
+          </Pressable>
+        </LinearGradient>
+
+        {openNote && (
+          <View style={[styles.noteCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            <View style={[styles.noteIcon, { backgroundColor: accentColor + '28' }]}>
+              <Ionicons name="sparkles" size={18} color={accentColor} />
             </View>
-            <View style={styles.aiTag}>
-              <Text style={styles.aiTagText}>spill</Text>
-              <Ionicons name="arrow-forward" size={14} color={accentColor} />
+            <View style={styles.noteCopy}>
+              <Text style={[styles.noteTitle, { color: theme.text }]}>{openNote.title}</Text>
+              <Text style={[styles.noteBody, { color: theme.subtext }]}>{openNote.body}</Text>
+              {openNote.streakNote && (
+                <Text style={[styles.noteTiny, { color: accentColor }]}>{openNote.streakNote}</Text>
+              )}
             </View>
-          </LinearGradient>
+          </View>
+        )}
+
+        <View style={[styles.moodPanel, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <View style={styles.panelHeader}>
+            <Text style={[styles.panelTitle, { color: theme.text }]}>daily mood log</Text>
+            <Ionicons name="ellipsis-horizontal" size={18} color={theme.subtext} />
+          </View>
+          <View style={styles.moodRow}>
+            {MOODS.map((mood, index) => (
+              <View
+                key={mood.label}
+                style={[
+                  styles.moodBubble,
+                  { backgroundColor: mood.color, marginTop: index % 2 ? 10 : 0 },
+                ]}
+              >
+                <Text style={styles.moodFace}>{mood.face}</Text>
+                <Text style={styles.moodLabel}>{mood.label}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <Pressable onPress={handleAI} style={({ pressed }) => [pressed && { transform: [{ scale: 0.98 }] }]}>
+          <View style={[styles.lunaCard, { backgroundColor: theme.text }]}>
+            <View style={[styles.lunaIcon, { backgroundColor: theme.card }]}>
+              <Ionicons name="moon" size={24} color={accentColor} />
+            </View>
+            <View style={styles.lunaText}>
+              {editingName ? (
+                <TextInput
+                  style={[styles.aiNameInput, { color: theme.card, borderBottomColor: theme.card }]}
+                  value={tempName}
+                  onChangeText={setTempName}
+                  autoFocus
+                  onBlur={() => {
+                    setLocalAiName(tempName || 'luna');
+                    setEditingName(false);
+                  }}
+                  onSubmitEditing={() => {
+                    setLocalAiName(tempName || 'luna');
+                    setEditingName(false);
+                  }}
+                  maxLength={20}
+                />
+              ) : (
+                <View style={styles.aiNameRow}>
+                  <Text style={[styles.lunaTitle, { color: theme.card }]}>{localAiName}</Text>
+                  <TouchableOpacity onPress={() => {
+                    tap();
+                    setTempName(localAiName);
+                    setEditingName(true);
+                  }}>
+                    <Ionicons name="pencil" size={12} color={theme.card} />
+                  </TouchableOpacity>
+                </View>
+              )}
+              <Text style={[styles.lunaSub, { color: theme.card }]}>tap to spill without advice</Text>
+            </View>
+            <Ionicons name="arrow-forward" size={18} color={theme.card} />
+          </View>
         </Pressable>
 
-        {/* Channels */}
-        <Text style={[styles.sectionTitle, { color: theme.subtext }]}>spaces</Text>
-        {channels.map((channel) => (
-          <Pressable
-            key={channel.id}
-            onPress={() => handleChannel(channel)}
-            style={({ pressed }) => [
-              styles.channelCard,
-              { backgroundColor: theme.card, borderColor: theme.border },
-              pressed && { transform: [{ scale: 0.98 }], borderColor: accentColor },
-            ]}
-          >
-            <View style={[styles.channelIconWrap, { backgroundColor: accentColor + '20' }]}>
-              <Ionicons name={channel.icon} size={20} color={accentColor} />
-            </View>
-            <View style={styles.channelInfo}>
-              <Text style={[styles.channelName, { color: theme.text }]}>{channel.name}</Text>
-              <Text style={[styles.channelDesc, { color: theme.subtext }]}>{channel.desc}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={theme.subtext} />
-          </Pressable>
-        ))}
-
-        <View style={{ height: 40 }} />
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>spaces based on your needs</Text>
+        <View style={styles.spaceGrid}>
+          {channels.map((channel, index) => (
+            <Pressable
+              key={channel.id}
+              onPress={() => handleChannel(channel)}
+              style={({ pressed }) => [
+                styles.spaceCard,
+                {
+                  backgroundColor: channel.color,
+                  transform: [{ translateY: index % 2 ? 12 : 0 }],
+                },
+                pressed && { transform: [{ scale: 0.97 }] },
+              ]}
+            >
+              <Ionicons name={channel.icon} size={22} color="#18151d" />
+              <Text style={styles.spaceName}>{channel.name}</Text>
+              <Text style={styles.spaceDesc}>{channel.desc}</Text>
+              <View style={styles.spaceArrow}>
+                <Ionicons name="arrow-forward" size={15} color="#18151d" />
+              </View>
+            </Pressable>
+          ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container:      { flex: 1 },
-  scrollContent:  { paddingHorizontal: 20, paddingTop: 8 },
-
-  // Header
-  headerBlock:    { marginBottom: 28 },
-  greetingRow:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  greeting:       { fontSize: 44, fontWeight: '800', letterSpacing: -1.5, lineHeight: 50 },
-  subtitle:       { fontSize: 15, marginTop: 4, letterSpacing: -0.2 },
-  openNote: {
-    marginTop: 18,
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: 1,
-  },
-  openNoteTitle:  { fontSize: 12, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 5 },
-  openNoteBody:   { fontSize: 17, fontWeight: '700', lineHeight: 23, letterSpacing: -0.2 },
-  openNoteTiny:   { fontSize: 12, marginTop: 8, lineHeight: 18 },
-
-  onlineBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-    gap: 5,
-    borderWidth: 0.5,
-  },
-  onlineDot:      { width: 6, height: 6, borderRadius: 3, backgroundColor: '#7eddb0' },
-  onlineText:     { fontSize: 11, fontWeight: '600', letterSpacing: 0.5 },
-
-  vibePill: {
-    marginTop: 18,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  vibeLabel:      { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },
-  vibeText:       { fontSize: 14, fontWeight: '600', flex: 1 },
-
-  // AI Card
-  aiCardWrap:     { marginBottom: 32, borderRadius: 24, overflow: 'hidden' },
-  aiCard: {
-    padding: 22,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  aiCardLeft:     { flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 },
-  aiIconWrap: {
-    width: 52, height: 52, borderRadius: 26,
-    backgroundColor: 'rgba(255,255,255,0.22)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  aiNameRow:      { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  aiName:         { fontSize: 22, fontWeight: '800', color: '#fff', letterSpacing: -0.3 },
-  aiNameInput:    {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.5)',
-    minWidth: 80,
-    paddingVertical: 2,
-  },
-  aiDesc:         { fontSize: 12, color: 'rgba(255,255,255,0.8)', marginTop: 3, letterSpacing: -0.1 },
-  aiTag: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  aiTagText:      { fontWeight: '800', fontSize: 13, letterSpacing: -0.2 },
-
-  // Sections
-  sectionTitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    marginBottom: 14,
-    letterSpacing: 2.5,
-    textTransform: 'uppercase',
-  },
-
-  // Channels
-  channelCard: {
-    borderRadius: 18,
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    borderWidth: 0.5,
-    gap: 14,
-  },
-  channelIconWrap: {
-    width: 44, height: 44, borderRadius: 14,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  channelInfo:    { flex: 1 },
-  channelName:    { fontSize: 16, fontWeight: '700', marginBottom: 2, letterSpacing: -0.2 },
-  channelDesc:    { fontSize: 12, letterSpacing: -0.1 },
+  container: { flex: 1 },
+  scrollContent: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 118 },
+  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 },
+  kicker: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
+  title: { fontSize: 34, fontWeight: '800', lineHeight: 40 },
+  liveBadge: { flexDirection: 'row', alignItems: 'center', gap: 7, borderRadius: 22, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 8 },
+  liveDot: { width: 7, height: 7, borderRadius: 4 },
+  liveText: { fontSize: 12, fontWeight: '700' },
+  reflectionCard: { borderRadius: 34, padding: 24, minHeight: 244, justifyContent: 'space-between', marginBottom: 16 },
+  cardLogo: { width: 38, height: 38, position: 'relative' },
+  diamond: { position: 'absolute', width: 16, height: 16, backgroundColor: '#18151d', transform: [{ rotate: '45deg' }], left: 3, top: 4 },
+  diamondOffset: { left: 16, top: 17 },
+  reflectionTitle: { color: '#18151d', fontSize: 32, lineHeight: 38, fontWeight: '800', maxWidth: 290 },
+  reflectionInput: { minHeight: 58, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.45)', paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  reflectionPlaceholder: { color: 'rgba(24,21,29,0.62)', fontSize: 14, fontWeight: '700', flex: 1, marginRight: 10 },
+  noteCard: { borderRadius: 26, borderWidth: 1, padding: 14, flexDirection: 'row', gap: 12, marginBottom: 16 },
+  noteIcon: { width: 42, height: 42, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  noteCopy: { flex: 1 },
+  noteTitle: { fontSize: 15, fontWeight: '800', marginBottom: 3 },
+  noteBody: { fontSize: 13, lineHeight: 19 },
+  noteTiny: { fontSize: 12, fontWeight: '800', marginTop: 6 },
+  moodPanel: { borderRadius: 30, borderWidth: 1, padding: 18, marginBottom: 16 },
+  panelHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
+  panelTitle: { fontSize: 16, fontWeight: '800' },
+  moodRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  moodBubble: { width: 54, height: 70, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  moodFace: { fontSize: 20, color: '#18151d', fontWeight: '900', lineHeight: 22 },
+  moodLabel: { color: '#18151d', fontSize: 9, fontWeight: '800', marginTop: 4 },
+  lunaCard: { borderRadius: 30, minHeight: 94, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 26 },
+  lunaIcon: { width: 54, height: 54, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  lunaText: { flex: 1 },
+  aiNameRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  lunaTitle: { fontSize: 24, fontWeight: '900' },
+  lunaSub: { fontSize: 13, fontWeight: '700', opacity: 0.76, marginTop: 3 },
+  aiNameInput: { fontSize: 24, fontWeight: '900', borderBottomWidth: 1, paddingVertical: 0, minWidth: 80 },
+  sectionTitle: { fontSize: 24, fontWeight: '900', lineHeight: 30, marginBottom: 14 },
+  spaceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  spaceCard: { width: '48%', minHeight: 148, borderRadius: 28, padding: 16, justifyContent: 'space-between' },
+  spaceName: { color: '#18151d', fontSize: 18, fontWeight: '900', marginTop: 14 },
+  spaceDesc: { color: 'rgba(24,21,29,0.68)', fontSize: 12, fontWeight: '700', marginTop: 4 },
+  spaceArrow: { position: 'absolute', right: 14, bottom: 14, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.35)', alignItems: 'center', justifyContent: 'center' },
 });

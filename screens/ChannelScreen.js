@@ -1,5 +1,3 @@
-import ReportSheet from '../components/ReportSheet';
-import { useState } from 'react';   // if not already imported
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform, Alert, Image, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect, useRef } from 'react';
@@ -9,7 +7,6 @@ import { moderatePost } from '../utils/moderator';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 
-const [reportPost, setReportPost] = useState(null);
 const BOT_MESSAGES = {
   self_harm: "hey, i noticed what you wrote and i just want to check in 💙 you don't have to go through this alone. please reach out to iCall at 9152987821 — they're really good listeners.",
   bullying: "this isn't the kind of space we want to build here. everyone deserves to feel safe. let's keep it kind 🙏",
@@ -390,7 +387,7 @@ export default function ChannelScreen({ channel, onBack }) {
             </View>
           )}
           {posts.map((post) => renderPost(post))}
-          <View style={{ height: 12 }} />
+          <View style={{ height: 112 }} />
         </ScrollView>
 
         <View style={[styles.inputContainer, { borderTopColor: theme.border, backgroundColor: theme.bg }]}>
@@ -487,7 +484,7 @@ const styles = StyleSheet.create({
   linkPreview: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 8, borderRadius: 10, borderWidth: 1, marginTop: 6 },
   linkIcon: { fontSize: 14 },
   linkUrl: { flex: 1, fontSize: 12 },
-  inputContainer: { flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 12, borderTopWidth: 1, gap: 8, alignItems: 'flex-end' },
+  inputContainer: { flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 12, borderTopWidth: 1, gap: 8, alignItems: 'flex-end', marginBottom: 88 },
   mediaBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   input: { flex: 1, borderRadius: 22, paddingHorizontal: 16, paddingVertical: 12, fontSize: 15, borderWidth: 1, maxHeight: 100 },
   postButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },

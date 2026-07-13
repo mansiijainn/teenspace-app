@@ -29,7 +29,7 @@ export default function ProfileScreen({ username }) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]} edges={['top', 'bottom']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
         {/* Profile Header */}
         <View style={[styles.profileCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
@@ -57,7 +57,7 @@ export default function ProfileScreen({ username }) {
                 onPress={() => setMode(m)}
               >
                 <Text style={[styles.toggleText, { color: mode === m ? '#fff' : theme.subtext }]}>
-                  {m === 'dark' ? 'dark' : 'light'}
+                  {m === 'dark' ? '🌙 dark' : '☀️ light'}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -103,7 +103,7 @@ export default function ProfileScreen({ username }) {
           <Text style={styles.logoutText}>log out</Text>
         </TouchableOpacity>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 20 }} />
       </ScrollView>
 
       {/* Full Color Palette Modal */}
@@ -144,6 +144,7 @@ export default function ProfileScreen({ username }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 20 },
+  scrollContent: { paddingBottom: 120 },
   profileCard: {
     borderRadius: 20,
     padding: 24,

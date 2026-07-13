@@ -307,7 +307,7 @@ import {
             </Text>
           </View>
   
-          <View style={{ height: 40 }} />
+          <View style={{ height: 120 }} />
         </ScrollView>
   
         <CountryPicker
@@ -341,7 +341,7 @@ import {
     tabLabel:         { fontSize: 13, fontWeight: '600' },
   
     scroll:           { flex: 1 },
-    scrollContent:    { padding: 20, gap: 10 },
+    scrollContent:    { padding: 20, paddingBottom: 120, gap: 10 },
   
     card:             { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 16, borderWidth: 0.5, gap: 12 },
     cardName:         { fontSize: 15, fontWeight: '600', marginBottom: 2 },

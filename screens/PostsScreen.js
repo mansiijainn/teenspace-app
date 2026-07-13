@@ -160,16 +160,23 @@ export default function PostsScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]} edges={['top', 'bottom']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        <View style={styles.header}>
-          <Text style={[styles.kicker, { color: accentColor }]}>one spill a day</Text>
-          <Text style={[styles.title, { color: theme.text }]}>posts</Text>
-          <Text style={[styles.subtitle, { color: theme.subtext }]}>text only. no advice unless someone asks.</Text>
+        <View style={[styles.headerCard, { backgroundColor: theme.panel }]}>
+          <View style={styles.headerTop}>
+            <Text style={styles.kicker}>one spill a day</Text>
+            <View style={styles.dayPill}>
+              <Ionicons name="calendar-outline" size={14} color="#18151d" />
+              <Text style={styles.dayPillText}>{todayKey().slice(5)}</Text>
+            </View>
+          </View>
+          <Text style={styles.title}>what do you wish someone would just hear?</Text>
+          <Text style={styles.subtitle}>text only. no photos. no advice unless someone asks.</Text>
         </View>
 
-        <View style={[styles.composer, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <View style={[styles.composer, { backgroundColor: theme.card, borderColor: theme.border, shadowColor: theme.shadow }]}>
           <View style={styles.promptRow}>
-            <Text style={[styles.promptLabel, { color: accentColor }]}>prompt</Text>
-            <TouchableOpacity onPress={() => setPromptIndex((promptIndex + 1) % PROMPTS.length)}>
+            <Text style={[styles.promptLabel, { color: theme.subtext }]}>prompt</Text>
+            <TouchableOpacity style={[styles.shuffleBtn, { backgroundColor: accentColor + '24' }]} onPress={() => setPromptIndex((promptIndex + 1) % PROMPTS.length)}>
+              <Ionicons name="shuffle" size={14} color={accentColor} />
               <Text style={[styles.shuffle, { color: accentColor }]}>shuffle</Text>
             </TouchableOpacity>
           </View>
@@ -187,11 +194,11 @@ export default function PostsScreen() {
           <View style={styles.composerBottom}>
             <Text style={[styles.count, { color: theme.subtext }]}>{content.length}/420</Text>
             <TouchableOpacity
-              style={[styles.postButton, { backgroundColor: accentColor }, (!content.trim() || hasPostedToday || loading) && styles.disabled]}
+              style={[styles.postButton, { backgroundColor: theme.text }, (!content.trim() || hasPostedToday || loading) && styles.disabled]}
               onPress={submitPost}
               disabled={!content.trim() || hasPostedToday || loading}
             >
-              <Text style={styles.postButtonText}>{loading ? 'posting...' : 'post'}</Text>
+              <Text style={[styles.postButtonText, { color: theme.card }]}>{loading ? 'posting...' : 'post'}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -206,17 +213,22 @@ export default function PostsScreen() {
         )}
 
         {posts.map(post => (
-          <View key={post.id} style={[styles.postCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <View key={post.id} style={[styles.postCard, { backgroundColor: theme.card, borderColor: theme.border, shadowColor: theme.shadow }]}>
             <View style={styles.postTop}>
-              <Text style={[styles.postUser, { color: accentColor }]}>@{post.user_email}</Text>
+              <View style={styles.userRow}>
+                <View style={[styles.userDot, { backgroundColor: accentColor }]} />
+                <Text style={[styles.postUser, { color: theme.text }]}>@{post.user_email}</Text>
+              </View>
               <Text style={[styles.postTime, { color: theme.subtext }]}>{timeAgo(post.created_at)}</Text>
             </View>
-            <Text style={[styles.postPrompt, { color: theme.subtext }]}>{post.prompt}</Text>
+            <View style={[styles.postPromptPill, { backgroundColor: theme.input }]}>
+              <Text style={[styles.postPrompt, { color: theme.subtext }]}>{post.prompt}</Text>
+            </View>
             <Text style={[styles.postText, { color: theme.text }]}>{post.content}</Text>
 
             <View style={[styles.commentsBox, { borderTopColor: theme.border }]}>
               {(comments[post.id] || []).map(comment => (
-                <View key={comment.id} style={styles.comment}>
+                <View key={comment.id} style={[styles.comment, { backgroundColor: theme.input }]}>
                   <Text style={[styles.commentUser, { color: accentColor }]}>@{comment.user_email}</Text>
                   <Text style={[styles.commentText, { color: theme.text }]}>{comment.content}</Text>
                 </View>
@@ -230,8 +242,8 @@ export default function PostsScreen() {
                   placeholderTextColor={theme.subtext}
                   maxLength={180}
                 />
-                <TouchableOpacity onPress={() => submitComment(post.id)} style={[styles.commentBtn, { backgroundColor: accentColor }]}>
-                  <Ionicons name="send" size={14} color="#fff" />
+                <TouchableOpacity onPress={() => submitComment(post.id)} style={[styles.commentBtn, { backgroundColor: theme.text }]}>
+                  <Ionicons name="send" size={14} color={theme.card} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -244,36 +256,61 @@ export default function PostsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { padding: 20, paddingBottom: 40 },
-  header: { marginBottom: 18 },
-  kicker: { fontSize: 11, fontWeight: '900', letterSpacing: 1.7, textTransform: 'uppercase', marginBottom: 4 },
-  title: { fontSize: 42, fontWeight: '900', letterSpacing: -1.4 },
-  subtitle: { fontSize: 14, marginTop: 4 },
-  composer: { borderRadius: 24, borderWidth: 1, padding: 16, marginBottom: 18 },
+  scroll: { padding: 20, paddingBottom: 120 },
+  headerCard: { borderRadius: 34, padding: 22, marginBottom: 16 },
+  headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 },
+  kicker: { color: 'rgba(24,21,29,0.56)', fontSize: 13, fontWeight: '800' },
+  dayPill: { backgroundColor: 'rgba(255,255,255,0.42)', borderRadius: 20, paddingHorizontal: 11, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  dayPillText: { color: '#18151d', fontSize: 12, fontWeight: '900' },
+  title: { color: '#18151d', fontSize: 30, fontWeight: '900', lineHeight: 36 },
+  subtitle: { color: 'rgba(24,21,29,0.62)', fontSize: 14, lineHeight: 20, marginTop: 12, fontWeight: '700' },
+  composer: {
+    borderRadius: 30,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 18,
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
+  },
   promptRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-  promptLabel: { fontSize: 11, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1.3 },
-  shuffle: { fontSize: 12, fontWeight: '800' },
-  prompt: { fontSize: 17, fontWeight: '800', lineHeight: 23, marginBottom: 12 },
-  input: { minHeight: 96, borderRadius: 18, borderWidth: 1, padding: 14, fontSize: 15, lineHeight: 21, textAlignVertical: 'top' },
+  promptLabel: { fontSize: 12, fontWeight: '900', textTransform: 'uppercase' },
+  shuffleBtn: { borderRadius: 18, paddingHorizontal: 11, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 5 },
+  shuffle: { fontSize: 12, fontWeight: '900' },
+  prompt: { fontSize: 18, fontWeight: '900', lineHeight: 24, marginBottom: 12 },
+  input: { minHeight: 112, borderRadius: 24, borderWidth: 1, padding: 16, fontSize: 15, lineHeight: 22, textAlignVertical: 'top' },
   composerBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 },
   count: { fontSize: 12 },
-  postButton: { borderRadius: 18, paddingHorizontal: 18, paddingVertical: 10 },
+  postButton: { borderRadius: 20, paddingHorizontal: 20, paddingVertical: 11 },
   disabled: { opacity: 0.45 },
-  postButtonText: { color: '#fff', fontSize: 14, fontWeight: '800' },
+  postButtonText: { fontSize: 14, fontWeight: '900' },
   setupCard: { borderWidth: 1, borderRadius: 18, padding: 14, marginBottom: 14 },
   setupTitle: { fontSize: 15, fontWeight: '800', marginBottom: 4 },
   setupText: { fontSize: 13, lineHeight: 19 },
-  postCard: { borderRadius: 22, borderWidth: 1, padding: 16, marginBottom: 14 },
+  postCard: {
+    borderRadius: 30,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 14,
+    shadowOpacity: 0.07,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 2,
+  },
   postTop: { flexDirection: 'row', justifyContent: 'space-between', gap: 10, marginBottom: 6 },
-  postUser: { fontSize: 12, fontWeight: '900' },
+  userRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
+  userDot: { width: 24, height: 24, borderRadius: 12 },
+  postUser: { fontSize: 12, fontWeight: '900', flex: 1 },
   postTime: { fontSize: 12 },
-  postPrompt: { fontSize: 12, marginBottom: 8, fontStyle: 'italic' },
-  postText: { fontSize: 16, lineHeight: 23, fontWeight: '600' },
+  postPromptPill: { borderRadius: 18, paddingHorizontal: 12, paddingVertical: 8, alignSelf: 'flex-start', marginBottom: 10 },
+  postPrompt: { fontSize: 12, fontWeight: '800' },
+  postText: { fontSize: 16, lineHeight: 24, fontWeight: '700' },
   commentsBox: { borderTopWidth: 1, marginTop: 14, paddingTop: 12 },
-  comment: { marginBottom: 10 },
+  comment: { marginBottom: 10, borderRadius: 18, padding: 10 },
   commentUser: { fontSize: 11, fontWeight: '900', marginBottom: 2 },
   commentText: { fontSize: 14, lineHeight: 20 },
   commentInputRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
-  commentInput: { flex: 1, borderRadius: 18, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14 },
+  commentInput: { flex: 1, borderRadius: 20, borderWidth: 1, paddingHorizontal: 13, paddingVertical: 11, fontSize: 14 },
   commentBtn: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
 });

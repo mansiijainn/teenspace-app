@@ -4,39 +4,56 @@ const ThemeContext = createContext();
 
 export const themes = {
   dark: {
-    bg:       '#17111f',
-    card:     '#24192e',
-    border:   '#3a2848',
-    text:     '#fff7fb',
-    subtext:  '#c7adcf',
-    input:    '#21172b',
-    overlay:  'rgba(23, 17, 31, 0.78)',
+    bg:       '#181116',
+    card:     '#241a20',
+    panel:    '#2c2027',
+    paper:    '#fff8f1',
+    border:   '#3a2a33',
+    text:     '#fff8f1',
+    subtext:  '#d5bdc9',
+    input:    '#2f2229',
+    shadow:   '#000000',
+    overlay:  'rgba(24, 17, 22, 0.78)',
   },
   light: {
-    bg:       '#fff6fb',
+    bg:       '#fff8f1',
     card:     '#ffffff',
-    border:   '#f5d6e8',
-    text:     '#2b1833',
-    subtext:  '#9b779f',
-    input:    '#fff0f8',
-    overlay:  'rgba(255, 246, 251, 0.72)',
+    panel:    '#f4e2d8',
+    paper:    '#fffdf9',
+    border:   '#ead9d2',
+    text:     '#18151d',
+    subtext:  '#8d7f87',
+    input:    '#f7ece8',
+    shadow:   '#cfb7aa',
+    overlay:  'rgba(255, 248, 241, 0.72)',
   },
 };
 
 export const accents = {
-  blossom:  '#f472b6',
-  bluebell: '#7db7ff',
-  lilac:    '#a78bfa',
-  peach:    '#ff9bb3',
-  mint:     '#7edfc7',
+  blossom:  '#f3a0bb',
+  bluebell: '#88afe9',
+  lilac:    '#aca7df',
+  peach:    '#eba18c',
+  mint:     '#9ebd8f',
+  butter:   '#efd96f',
 };
 
 export const gradients = {
-  blossom:  ['#f9a8d4', '#93c5fd'],
-  bluebell: ['#bfdbfe', '#f0abfc'],
-  lilac:    ['#c4b5fd', '#fbcfe8'],
-  peach:    ['#fecdd3', '#f9a8d4'],
-  mint:     ['#99f6e4', '#bfdbfe'],
+  blossom:  ['#f9c5d5', '#b9cdf7'],
+  bluebell: ['#c9dcff', '#efd4ec'],
+  lilac:    ['#d7d1ff', '#f6cddd'],
+  peach:    ['#f5cabc', '#f0dc94'],
+  mint:     ['#c9dfc0', '#b7d8ec'],
+  butter:   ['#f6e48c', '#efb8a7'],
+};
+
+export const moodColors = {
+  happy:   '#efd96f',
+  calm:    '#9ebd8f',
+  sad:     '#ead9d2',
+  angry:   '#e58d75',
+  anxious: '#aca7df',
+  soft:    '#f3a0bb',
 };
 
 export function ThemeProvider({ children }) {

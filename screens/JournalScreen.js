@@ -1,18 +1,19 @@
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme, moodColors } from '../context/ThemeContext';
 import JournalEntryScreen from './JournalEntryScreen';
 import { recordMoodEntry } from '../utils/safetySignals';
 
 const MOODS = [
-  { key: 'soft', label: 'soft', icon: '♡' },
-  { key: 'okay', label: 'okay', icon: '✦' },
-  { key: 'low', label: 'low', icon: '☁' },
-  { key: 'anxious', label: 'anxious', icon: '~' },
-  { key: 'angry', label: 'angry', icon: '!' },
-  { key: 'numb', label: 'numb', icon: '·' },
+  { key: 'soft', label: 'soft', icon: '♡', color: moodColors.soft },
+  { key: 'okay', label: 'okay', icon: '☻', color: moodColors.happy },
+  { key: 'low', label: 'low', icon: '☁', color: moodColors.sad },
+  { key: 'anxious', label: 'anxious', icon: '~', color: moodColors.anxious },
+  { key: 'angry', label: 'angry', icon: '!', color: moodColors.angry },
+  { key: 'numb', label: 'numb', icon: '·', color: moodColors.calm },
 ];
 
 export default function JournalScreen() {
@@ -143,21 +144,25 @@ export default function JournalScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <View>
-          <Text style={[styles.kicker, { color: accentColor }]}>dear diary-ish</Text>
-          <Text style={[styles.title, { color: theme.text }]}>journal</Text>
+        <View style={styles.headerCopy}>
+          <Text style={[styles.kicker, { color: theme.subtext }]}>private reflection</Text>
+          <Text style={[styles.title, { color: theme.text }]}>dear diary-ish</Text>
+          <Text style={[styles.subtitle, { color: theme.subtext }]}>fonts, colors, doodles and photos live inside each entry.</Text>
         </View>
         <TouchableOpacity
-          style={[styles.newBtn, { backgroundColor: accentColor }]}
+          style={[styles.newBtn, { backgroundColor: theme.text }]}
           onPress={createNewEntry}
         >
-          <Text style={styles.newBtnText}>+ new</Text>
+          <Ionicons name="add" size={22} color={theme.card} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={[styles.moodCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <Text style={[styles.moodTitle, { color: theme.text }]}>what's the vibe before you write?</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+        <View style={[styles.heroCard, { backgroundColor: theme.panel }]}>
+          <View style={styles.heroText}>
+            <Text style={styles.heroEyebrow}>today's page</Text>
+            <Text style={styles.heroTitle}>what's the vibe before you write?</Text>
+          </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.moodRow}>
             {MOODS.map((mood) => {
               const active = selectedMood === mood.key;
@@ -165,28 +170,30 @@ export default function JournalScreen() {
                 <TouchableOpacity
                   key={mood.key}
                   style={[
-                    styles.moodPill,
+                    styles.moodBubble,
                     {
-                      backgroundColor: active ? accentColor : theme.input,
-                      borderColor: active ? accentColor : theme.border,
+                      backgroundColor: mood.color,
+                      borderColor: active ? theme.text : 'rgba(255,255,255,0.42)',
+                      transform: [{ scale: active ? 1.05 : 1 }],
                     },
                   ]}
                   onPress={() => setSelectedMood(mood.key)}
                 >
-                  <Text style={[styles.moodIcon, { color: active ? '#fff' : accentColor }]}>{mood.icon}</Text>
-                  <Text style={[styles.moodLabel, { color: active ? '#fff' : theme.subtext }]}>{mood.label}</Text>
+                  <Text style={styles.moodIcon}>{mood.icon}</Text>
+                  <Text style={styles.moodLabel}>{mood.label}</Text>
                 </TouchableOpacity>
               );
             })}
           </ScrollView>
-          <Text style={[styles.moodHint, { color: theme.subtext }]}>
-            fonts, colors, doodles and photos are inside each entry.
-          </Text>
+          <TouchableOpacity style={[styles.heroAction, { backgroundColor: theme.card }]} onPress={createNewEntry}>
+            <Text style={[styles.heroActionText, { color: theme.text }]}>start a soft page</Text>
+            <Ionicons name="arrow-forward" size={16} color={theme.text} />
+          </TouchableOpacity>
         </View>
 
         {entries.length === 0 && (
-          <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>✧</Text>
+          <View style={[styles.empty, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            <Text style={styles.emptyEmoji}>✎</Text>
             <Text style={[styles.emptyTitle, { color: theme.text }]}>blank page energy</Text>
             <Text style={[styles.emptySubtext, { color: theme.subtext }]}>
               write messy. make it pink. doodle over it.{'\n'}this one's just yours.
@@ -200,34 +207,35 @@ export default function JournalScreen() {
           </View>
         )}
 
+        {entries.length > 0 && (
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>recent pages</Text>
+        )}
+
         {entries.map((entry) => (
           <TouchableOpacity
             key={entry.id}
-            style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}
+            style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border, shadowColor: theme.shadow }]}
             onPress={() => setActiveEntry(entry)}
             onLongPress={() => deleteEntry(entry)}
           >
-            {getEntryMood(entry) && (
-              <View style={[styles.entryMood, { backgroundColor: accentColor + '18' }]}>
-                <Text style={[styles.entryMoodText, { color: accentColor }]}>
-                  {getEntryMood(entry).icon} {getEntryMood(entry).label}
+            <View style={styles.cardTop}>
+              <View style={[styles.entryMood, { backgroundColor: getEntryMood(entry)?.color || accentColor }]}>
+                <Text style={styles.entryMoodText}>{getEntryMood(entry)?.icon || '♡'}</Text>
+              </View>
+              <View style={styles.cardCopy}>
+                <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>
+                  {getEntryTitle(entry)}
+                </Text>
+                <Text style={[styles.cardPreview, { color: theme.subtext }]} numberOfLines={2}>
+                  {getEntryPreview(entry)}
                 </Text>
               </View>
-            )}
-            <View style={styles.cardTop}>
-              <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>
-                {getEntryTitle(entry)}
-              </Text>
               <Text style={[styles.cardDate, { color: theme.subtext }]}>
                 {formatDate(entry.updated_at || entry.created_at)}
               </Text>
             </View>
-            <Text style={[styles.cardPreview, { color: theme.subtext }]} numberOfLines={2}>
-              {getEntryPreview(entry)}
-            </Text>
           </TouchableOpacity>
         ))}
-        <View style={{ height: 20 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -238,32 +246,48 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingTop: 20,
-    marginBottom: 24,
+    marginBottom: 18,
   },
-  kicker: { fontSize: 11, fontWeight: '800', letterSpacing: 1.6, textTransform: 'uppercase', marginBottom: 3 },
-  title: { fontSize: 28, fontWeight: '700', letterSpacing: -0.5 },
-  newBtn: { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10 },
-  newBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  moodCard: { borderRadius: 24, borderWidth: 1, padding: 16, marginBottom: 18 },
-  moodTitle: { fontSize: 17, fontWeight: '800', letterSpacing: -0.3, marginBottom: 12 },
-  moodRow: { gap: 8, paddingRight: 10 },
-  moodPill: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 18, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 9 },
-  moodIcon: { fontSize: 15, fontWeight: '900' },
-  moodLabel: { fontSize: 13, fontWeight: '700' },
-  moodHint: { fontSize: 12, lineHeight: 18, marginTop: 12 },
-  empty: { alignItems: 'center', marginTop: 100, gap: 12 },
-  emptyEmoji: { fontSize: 44 },
-  emptyTitle: { fontSize: 22, fontWeight: '700' },
+  headerCopy: { flex: 1, paddingRight: 18 },
+  kicker: { fontSize: 13, fontWeight: '700', marginBottom: 5 },
+  title: { fontSize: 34, fontWeight: '900', lineHeight: 39 },
+  subtitle: { fontSize: 13, lineHeight: 19, marginTop: 8 },
+  newBtn: { width: 52, height: 52, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
+  scroll: { paddingBottom: 118 },
+  heroCard: { borderRadius: 34, padding: 20, marginBottom: 18 },
+  heroText: { marginBottom: 18 },
+  heroEyebrow: { color: 'rgba(24,21,29,0.55)', fontSize: 13, fontWeight: '700', marginBottom: 7 },
+  heroTitle: { color: '#18151d', fontSize: 28, lineHeight: 34, fontWeight: '900', maxWidth: 300 },
+  moodRow: { gap: 10, paddingRight: 10, paddingBottom: 4 },
+  moodBubble: { width: 74, height: 84, borderRadius: 34, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  moodIcon: { color: '#18151d', fontSize: 22, fontWeight: '900' },
+  moodLabel: { color: '#18151d', fontSize: 11, fontWeight: '800', marginTop: 5 },
+  heroAction: { height: 54, borderRadius: 22, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 },
+  heroActionText: { fontSize: 14, fontWeight: '900' },
+  empty: { alignItems: 'center', marginTop: 20, gap: 12, borderRadius: 30, borderWidth: 1, padding: 28 },
+  emptyEmoji: { fontSize: 42 },
+  emptyTitle: { fontSize: 22, fontWeight: '900' },
   emptySubtext: { fontSize: 14, textAlign: 'center', lineHeight: 22, opacity: 0.6 },
   emptyBtn: { borderRadius: 14, paddingHorizontal: 24, paddingVertical: 14, marginTop: 8 },
   emptyBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-  card: { borderRadius: 16, padding: 16, marginBottom: 10, borderWidth: 1 },
-  entryMood: { alignSelf: 'flex-start', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5, marginBottom: 10 },
-  entryMoodText: { fontSize: 11, fontWeight: '800' },
-  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  cardTitle: { fontSize: 16, fontWeight: '600', flex: 1, marginRight: 8 },
+  sectionTitle: { fontSize: 22, fontWeight: '900', marginBottom: 12, marginTop: 6 },
+  card: {
+    borderRadius: 26,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
+  },
+  entryMood: { width: 52, height: 62, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
+  entryMoodText: { color: '#18151d', fontSize: 22, fontWeight: '900' },
+  cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  cardCopy: { flex: 1 },
+  cardTitle: { fontSize: 16, fontWeight: '900', marginBottom: 4 },
   cardDate: { fontSize: 12 },
   cardPreview: { fontSize: 14, lineHeight: 20, opacity: 0.7 },
 });

@@ -97,6 +97,7 @@ function MainApp({ username }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [aiName, setAiName] = useState('luna');
   const { theme, accentColor } = useTheme();
+  const iconBg = theme.card;
 
   if (chatOpen) {
     return <ChatScreen aiName={aiName} onBack={() => setChatOpen(false)} />;
@@ -108,18 +109,29 @@ function MainApp({ username }) {
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: theme.bg,
-            borderTopColor: theme.border,
-            borderTopWidth: 1,
-            paddingBottom: 8,
-            paddingTop: 8,
-            height: 64,
+            position: 'absolute',
+            left: 20,
+            right: 20,
+            bottom: 16,
+            height: 68,
+            borderRadius: 28,
+            backgroundColor: iconBg,
+            borderTopWidth: 0,
+            borderWidth: 1,
+            borderColor: theme.border,
+            paddingBottom: 10,
+            paddingTop: 10,
+            shadowColor: theme.shadow,
+            shadowOpacity: 0.16,
+            shadowRadius: 18,
+            shadowOffset: { width: 0, height: 10 },
+            elevation: 10,
           },
           tabBarActiveTintColor: accentColor,
           tabBarInactiveTintColor: theme.subtext,
           tabBarLabelStyle: {
             fontSize: 10,
-            fontWeight: '600',
+            fontWeight: '700',
           },
         }}
       >
@@ -152,7 +164,12 @@ function MainApp({ username }) {
           options={{
             tabBarLabel: 'journal',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'book' : 'book-outline'} size={22} color={color} />
+              <View style={[
+                styles.centerTab,
+                { backgroundColor: focused ? theme.text : accentColor },
+              ]}>
+                <Ionicons name={focused ? 'book' : 'book-outline'} size={22} color={theme.card} />
+              </View>
             ),
           }}
         >
@@ -441,9 +458,12 @@ function AuthScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
-      <StatusBar style="light" />
+      <StatusBar style={theme.bg === '#fff8f1' ? 'dark' : 'light'} />
       {signupStep === 'credentials' && (
         <View style={styles.header}>
+          <View style={[styles.logoMark, { backgroundColor: theme.panel }]}>
+            <Text style={styles.logoCup}>☕</Text>
+          </View>
           <Text style={[styles.logo, { color: theme.text }]}>spillr</Text>
           <Text style={[styles.tagline, { color: theme.subtext }]}>spill it. no judgement.</Text>
         </View>
@@ -533,7 +553,17 @@ export default function App() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  logo: { fontSize: 36, fontWeight: 'bold', letterSpacing: 1 },
+  logoMark: {
+    width: 82,
+    height: 82,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    transform: [{ rotate: '-5deg' }],
+  },
+  logoCup: { fontSize: 36 },
+  logo: { fontSize: 42, fontWeight: '900' },
   tagline: { fontSize: 14, marginTop: 8 },
   form: { flex: 2, paddingHorizontal: 30 },
   title: { fontSize: 24, fontWeight: '600', marginBottom: 30 },
@@ -553,4 +583,12 @@ const styles = StyleSheet.create({
   rejectionBox: { borderRadius: 14, borderWidth: 1, padding: 14, marginBottom: 12 },
   rejectionTitle: { color: '#dc2626', fontSize: 14, fontWeight: '800', marginBottom: 6 },
   rejectionText: { color: '#dc2626', fontSize: 13, lineHeight: 19 },
+  centerTab: {
+    width: 46,
+    height: 46,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -14,
+  },
 });

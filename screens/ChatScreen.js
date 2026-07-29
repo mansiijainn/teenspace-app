@@ -4,15 +4,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { takePendingLunaMessages } from '../utils/safetySignals';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // API key from .env — must be prefixed with EXPO_PUBLIC_ to be accessible in client code
 const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
+const CHAT_STORAGE_KEY = 'spillr_luna_chat_messages_v1';
 
 const SYSTEM_PROMPT = `You are Luna, a warm and empathetic AI companion for teenagers aged 13-19 using a mental wellness app called spillr.
 
 How you talk:
 - Reflect back what they said first, so they feel heard
-- Talk like a close friend — casual, warm, lowercase mostly
+- Talk like a close friend, casual and warm
+- Write in lowercase only. Never start sentences with capital letters
+- Avoid formal punctuation. Use fewer periods, no exclamation marks, and no polished essay tone
+- Sound like a soft gen z friend, not a therapist, teacher, or email
 - Use 2-4 sentences max, never long lectures
 - One gentle question at a time, only if it feels right
 - Match their language — if they write Hindi/Hinglish, respond the same way
@@ -30,33 +35,77 @@ Never:
 - Replace professional help
 - Use therapy jargon like "validate" or "boundaries" unprompted`;
 
+function getOpeningMessage(aiName) {
+  return {
+    role: 'assistant',
+    content: `hey, i'm ${aiName}. no judgment, no pressure. what's on your mind?`,
+  };
+}
+
+function softenLunaReply(text) {
+  return text
+    .trim()
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/[—–]/g, ', ')
+    .replace(/!+/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\.($|\s+)/g, '$1')
+    .toLowerCase();
+}
+
 export default function ChatScreen({ aiName = 'luna', onBack }) {
-  const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      content: `hey, i'm ${aiName}. no judgment, no pressure. what's on your mind?`
-    }
-  ]);
+  const [messages, setMessages] = useState(null);
+  const [chatReady, setChatReady] = useState(false);
   const [input, setInput]   = useState('');
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef(null);
   const { theme, accentColor } = useTheme();
 
   useEffect(() => {
-    takePendingLunaMessages().then((pending) => {
-      if (pending.length) {
-        setMessages(prev => [...prev, ...pending]);
+    let mounted = true;
+
+    const loadChat = async () => {
+      let savedMessages = [];
+
+      try {
+        const raw = await AsyncStorage.getItem(CHAT_STORAGE_KEY);
+        savedMessages = raw ? JSON.parse(raw) : [];
+      } catch {
+        savedMessages = [];
       }
-    });
-  }, []);
+
+      const baseMessages = Array.isArray(savedMessages) && savedMessages.length
+        ? savedMessages
+        : [getOpeningMessage(aiName)];
+      const pending = await takePendingLunaMessages();
+
+      if (mounted) {
+        setMessages([...baseMessages, ...pending]);
+        setChatReady(true);
+      }
+    };
+
+    loadChat();
+
+    return () => {
+      mounted = false;
+    };
+  }, [aiName]);
+
+  useEffect(() => {
+    if (!chatReady || !messages) return;
+    AsyncStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages)).catch(() => {});
+  }, [chatReady, messages]);
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
   
     if (!OPENAI_API_KEY) {
+      const trimmed = input.trim();
       setMessages(prev => [
-        ...prev,
-        { role: 'user', content: input.trim() },
+        ...(prev || [getOpeningMessage(aiName)]),
+        { role: 'user', content: trimmed },
         { role: 'assistant', content: 'i\'m not set up yet — the API key is missing. check your .env file.' },
       ]);
       setInput('');
@@ -64,7 +113,7 @@ export default function ChatScreen({ aiName = 'luna', onBack }) {
     }
   
     const userMessage = { role: 'user', content: input.trim() };
-    const updatedMessages = [...messages, userMessage];
+    const updatedMessages = [...(messages || [getOpeningMessage(aiName)]), userMessage];
     setMessages(updatedMessages);
     setInput('');
     setLoading(true);
@@ -95,12 +144,13 @@ export default function ChatScreen({ aiName = 'luna', onBack }) {
           role: 'assistant',
           content: `something's off on my end (${data?.error?.message || response.status}). try again?`,
         }]);
+        setLoading(false);
         return;
       }
   
       const aiReply = data.choices?.[0]?.message?.content;
       if (aiReply) {
-        setMessages(prev => [...prev, { role: 'assistant', content: aiReply.trim() }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: softenLunaReply(aiReply) }]);
         setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 300);
       } else {
         setMessages(prev => [...prev, {
@@ -151,7 +201,7 @@ export default function ChatScreen({ aiName = 'luna', onBack }) {
           keyboardShouldPersistTaps="handled"
           onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
         >
-          {messages.map((msg, index) => (
+          {(messages || []).map((msg, index) => (
             <View
               key={index}
               style={[styles.bubbleRow, msg.role === 'user' ? styles.bubbleRowRight : styles.bubbleRowLeft]}

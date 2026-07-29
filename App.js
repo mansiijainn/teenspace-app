@@ -96,8 +96,28 @@ function getScreeningFailure(answers) {
 function MainApp({ username }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [aiName, setAiName] = useState('luna');
+  const [spacesOpen, setSpacesOpen] = useState(false);
   const { theme, accentColor } = useTheme();
   const iconBg = theme.card;
+  const tabBarStyle = {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    bottom: 16,
+    height: 68,
+    borderRadius: 28,
+    backgroundColor: iconBg,
+    borderTopWidth: 0,
+    borderWidth: 1,
+    borderColor: theme.border,
+    paddingBottom: 10,
+    paddingTop: 10,
+    shadowColor: theme.shadow,
+    shadowOpacity: 0.16,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
+  };
 
   if (chatOpen) {
     return <ChatScreen aiName={aiName} onBack={() => setChatOpen(false)} />;
@@ -108,25 +128,7 @@ function MainApp({ username }) {
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
-          tabBarStyle: {
-            position: 'absolute',
-            left: 20,
-            right: 20,
-            bottom: 16,
-            height: 68,
-            borderRadius: 28,
-            backgroundColor: iconBg,
-            borderTopWidth: 0,
-            borderWidth: 1,
-            borderColor: theme.border,
-            paddingBottom: 10,
-            paddingTop: 10,
-            shadowColor: theme.shadow,
-            shadowOpacity: 0.16,
-            shadowRadius: 18,
-            shadowOffset: { width: 0, height: 10 },
-            elevation: 10,
-          },
+          tabBarStyle: spacesOpen ? { display: 'none' } : tabBarStyle,
           tabBarActiveTintColor: accentColor,
           tabBarInactiveTintColor: theme.subtext,
           tabBarLabelStyle: {
@@ -144,7 +146,13 @@ function MainApp({ username }) {
             ),
           }}
         >
-          {() => <HomeScreen onOpenChat={() => setChatOpen(true)} aiName={aiName} />}
+          {() => (
+            <HomeScreen
+              onOpenChat={() => setChatOpen(true)}
+              aiName={aiName}
+              onSpacesOpenChange={setSpacesOpen}
+            />
+          )}
         </Tab.Screen>
 
         <Tab.Screen
@@ -254,20 +262,6 @@ function AuthScreen() {
     return true;
   };
 
-  const sendRejectionNotice = async (failure) => {
-    try {
-      await supabase.functions.invoke('signup-rejection-email', {
-        body: {
-          email: email.trim().toLowerCase(),
-          reason: failure.reason,
-          questionId: failure.questionId,
-        },
-      });
-    } catch {
-      // Email delivery depends on a Supabase Edge Function; signup still stays blocked.
-    }
-  };
-
   const createAccount = async () => {
     setLoading(true);
     const ageNum = parseInt(age, 10);
@@ -308,7 +302,6 @@ function AuthScreen() {
 
     if (failure) {
       setRejection(failure.reason);
-      await sendRejectionNotice(failure);
       Alert.alert('Not a fit right now', failure.reason);
       return;
     }

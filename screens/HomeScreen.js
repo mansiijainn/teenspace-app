@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput, Pressable, Animated, Easing } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput, Pressable, Animated, Easing, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import ChannelScreen from './ChannelScreen';
 import { useState, useEffect, useRef } from 'react';
 import { useTheme, moodColors } from '../context/ThemeContext';
-import { trackAppOpen } from '../utils/safetySignals';
+import { getMoodLogs, recordMoodEntry, trackAppOpen } from '../utils/safetySignals';
 
 const channels = [
   { id: 1, name: 'rants', icon: 'flame', desc: 'let it out', color: '#e58d75' },
@@ -18,11 +18,11 @@ const channels = [
 ];
 
 const MOODS = [
-  { label: 'happy', face: '☻', color: moodColors.happy },
-  { label: 'calm', face: '◡', color: moodColors.calm },
-  { label: 'sad', face: '☁', color: moodColors.sad },
-  { label: 'mad', face: '!', color: moodColors.angry },
-  { label: 'soft', face: '♡', color: moodColors.soft },
+  { key: 'happy', label: 'happy', face: '☻', color: moodColors.happy },
+  { key: 'calm', label: 'calm', face: '◡', color: moodColors.calm },
+  { key: 'low', label: 'sad', face: '☁', color: moodColors.sad },
+  { key: 'angry', label: 'mad', face: '!', color: moodColors.angry },
+  { key: 'soft', label: 'soft', face: '♡', color: moodColors.soft },
 ];
 
 const PROMPTS = [
@@ -34,12 +34,16 @@ const PROMPTS = [
 
 const LIVE_LABELS = ['awake', 'listening', 'soft mode', 'no judgement', 'here'];
 
-export default function HomeScreen({ onOpenChat, aiName = 'luna' }) {
+export default function HomeScreen({ onOpenChat, aiName = 'luna', onSpacesOpenChange }) {
   const [activeChannel, setActiveChannel] = useState(null);
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState(aiName);
   const [localAiName, setLocalAiName] = useState(aiName);
   const [openNote, setOpenNote] = useState(null);
+  const [selectedMood, setSelectedMood] = useState(null);
+  const [moodNote, setMoodNote] = useState('');
+  const [recentMoods, setRecentMoods] = useState([]);
+  const [moodHistoryOpen, setMoodHistoryOpen] = useState(false);
   const { theme, accentColor, gradient } = useTheme();
 
   const prompt = PROMPTS[new Date().getDate() % PROMPTS.length];
@@ -61,7 +65,16 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna' }) {
 
   useEffect(() => {
     trackAppOpen().then(setOpenNote);
+    getMoodLogs(5).then(setRecentMoods);
   }, []);
+
+  useEffect(() => {
+    onSpacesOpenChange?.(Boolean(activeChannel));
+
+    return () => {
+      onSpacesOpenChange?.(false);
+    };
+  }, [activeChannel, onSpacesOpenChange]);
 
   const tap = () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   const handleChannel = (channel) => {
@@ -71,6 +84,30 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna' }) {
   const handleAI = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onOpenChat();
+  };
+  const handleMood = async (mood) => {
+    setSelectedMood(mood.key);
+    setMoodNote(`${mood.label} logged for today`);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    await recordMoodEntry(mood.key);
+    const logs = await getMoodLogs(5);
+    setRecentMoods(logs);
+  };
+  const openMoodHistory = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setMoodHistoryOpen(true);
+  };
+  const formatMoodTime = (createdAt) => new Date(createdAt).toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+  const getMoodMeta = (moodKey) => MOODS.find((option) => option.key === moodKey) || {
+    key: moodKey,
+    label: moodKey,
+    face: '♡',
+    color: accentColor,
   };
 
   if (activeChannel) {
@@ -97,10 +134,10 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna' }) {
             <View style={[styles.diamond, styles.diamondOffset]} />
           </View>
           <Text style={styles.reflectionTitle}>{reflection}</Text>
-          <Pressable style={styles.reflectionInput} onPress={handleAI}>
+          <View style={styles.reflectionInput}>
             <Text style={styles.reflectionPlaceholder}>{prompt}</Text>
-            <Ionicons name="arrow-forward" size={18} color="#18151d" />
-          </Pressable>
+            <Ionicons name="sparkles" size={18} color="#18151d" />
+          </View>
         </LinearGradient>
 
         {openNote && (
@@ -121,22 +158,30 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna' }) {
         <View style={[styles.moodPanel, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <View style={styles.panelHeader}>
             <Text style={[styles.panelTitle, { color: theme.text }]}>daily mood log</Text>
-            <Ionicons name="ellipsis-horizontal" size={18} color={theme.subtext} />
+            <TouchableOpacity onPress={openMoodHistory} style={styles.panelAction}>
+              <Ionicons name="ellipsis-horizontal" size={18} color={theme.subtext} />
+            </TouchableOpacity>
           </View>
           <View style={styles.moodRow}>
             {MOODS.map((mood, index) => (
-              <View
-                key={mood.label}
+              <Pressable
+                key={mood.key}
+                onPress={() => handleMood(mood)}
                 style={[
                   styles.moodBubble,
-                  { backgroundColor: mood.color, marginTop: index % 2 ? 10 : 0 },
+                  {
+                    backgroundColor: mood.color,
+                    marginTop: index % 2 ? 10 : 0,
+                    borderColor: selectedMood === mood.key ? '#18151d' : 'rgba(255,255,255,0.7)',
+                  },
                 ]}
               >
                 <Text style={styles.moodFace}>{mood.face}</Text>
                 <Text style={styles.moodLabel}>{mood.label}</Text>
-              </View>
+              </Pressable>
             ))}
           </View>
+          {!!moodNote && <Text style={[styles.moodNote, { color: accentColor }]}>{moodNote}</Text>}
         </View>
 
         <Pressable onPress={handleAI} style={({ pressed }) => [pressed && { transform: [{ scale: 0.98 }] }]}>
@@ -204,6 +249,60 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna' }) {
           ))}
         </View>
       </ScrollView>
+
+      <Modal
+        visible={moodHistoryOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMoodHistoryOpen(false)}
+      >
+        <Pressable style={styles.modalBackdrop} onPress={() => setMoodHistoryOpen(false)}>
+          <Pressable
+            style={[styles.moodSheet, { backgroundColor: theme.card, borderColor: theme.border, shadowColor: theme.shadow }]}
+            onPress={() => {}}
+          >
+            <LinearGradient colors={gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.sheetHero}>
+              <View>
+                <Text style={styles.sheetKicker}>mood log</Text>
+                <Text style={styles.sheetTitle}>tiny check-ins</Text>
+              </View>
+              <TouchableOpacity style={styles.sheetClose} onPress={() => setMoodHistoryOpen(false)}>
+                <Ionicons name="close" size={18} color="#18151d" />
+              </TouchableOpacity>
+            </LinearGradient>
+
+            {recentMoods.length ? (
+              <View style={styles.moodHistoryList}>
+                {recentMoods.map((item, index) => {
+                  const mood = getMoodMeta(item.mood);
+                  return (
+                    <View key={`${item.createdAt}-${index}`} style={[styles.moodHistoryRow, { backgroundColor: theme.input }]}>
+                      <View style={[styles.historyMoodBubble, { backgroundColor: mood.color }]}>
+                        <Text style={styles.historyMoodFace}>{mood.face}</Text>
+                      </View>
+                      <View style={styles.historyCopy}>
+                        <Text style={[styles.historyMoodLabel, { color: theme.text }]}>{mood.label}</Text>
+                        <Text style={[styles.historyMoodTime, { color: theme.subtext }]}>{formatMoodTime(item.createdAt)}</Text>
+                      </View>
+                      {index === 0 && (
+                        <View style={[styles.latestPill, { backgroundColor: accentColor + '24' }]}>
+                          <Text style={[styles.latestText, { color: accentColor }]}>latest</Text>
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            ) : (
+              <View style={[styles.emptyHistory, { backgroundColor: theme.input }]}>
+                <Text style={styles.emptyHistoryFace}>♡</Text>
+                <Text style={[styles.emptyHistoryTitle, { color: theme.text }]}>no moods yet</Text>
+                <Text style={[styles.emptyHistoryText, { color: theme.subtext }]}>tap any bubble to save your first soft check-in.</Text>
+              </View>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -233,10 +332,12 @@ const styles = StyleSheet.create({
   moodPanel: { borderRadius: 30, borderWidth: 1, padding: 18, marginBottom: 16 },
   panelHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
   panelTitle: { fontSize: 16, fontWeight: '800' },
+  panelAction: { width: 34, height: 30, alignItems: 'center', justifyContent: 'center' },
   moodRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  moodBubble: { width: 54, height: 70, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  moodBubble: { width: 54, height: 70, borderRadius: 28, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   moodFace: { fontSize: 20, color: '#18151d', fontWeight: '900', lineHeight: 22 },
   moodLabel: { color: '#18151d', fontSize: 9, fontWeight: '800', marginTop: 4 },
+  moodNote: { fontSize: 12, fontWeight: '800', marginTop: 12 },
   lunaCard: { borderRadius: 30, minHeight: 94, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 26 },
   lunaIcon: { width: 54, height: 54, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   lunaText: { flex: 1 },
@@ -250,4 +351,31 @@ const styles = StyleSheet.create({
   spaceName: { color: '#18151d', fontSize: 18, fontWeight: '900', marginTop: 14 },
   spaceDesc: { color: 'rgba(24,21,29,0.68)', fontSize: 12, fontWeight: '700', marginTop: 4 },
   spaceArrow: { position: 'absolute', right: 14, bottom: 14, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.35)', alignItems: 'center', justifyContent: 'center' },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(24,21,29,0.35)', justifyContent: 'flex-end', padding: 16 },
+  moodSheet: {
+    borderRadius: 32,
+    borderWidth: 1,
+    padding: 14,
+    shadowOpacity: 0.18,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 12,
+  },
+  sheetHero: { minHeight: 116, borderRadius: 26, padding: 18, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 },
+  sheetKicker: { color: 'rgba(24,21,29,0.56)', fontSize: 13, fontWeight: '800', marginBottom: 6 },
+  sheetTitle: { color: '#18151d', fontSize: 28, lineHeight: 32, fontWeight: '900' },
+  sheetClose: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.42)', alignItems: 'center', justifyContent: 'center' },
+  moodHistoryList: { gap: 10 },
+  moodHistoryRow: { minHeight: 68, borderRadius: 24, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  historyMoodBubble: { width: 46, height: 52, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },
+  historyMoodFace: { color: '#18151d', fontSize: 18, fontWeight: '900' },
+  historyCopy: { flex: 1 },
+  historyMoodLabel: { fontSize: 15, fontWeight: '900', marginBottom: 3 },
+  historyMoodTime: { fontSize: 12, fontWeight: '700' },
+  latestPill: { borderRadius: 16, paddingHorizontal: 10, paddingVertical: 6 },
+  latestText: { fontSize: 11, fontWeight: '900' },
+  emptyHistory: { borderRadius: 24, padding: 22, alignItems: 'center' },
+  emptyHistoryFace: { color: '#18151d', fontSize: 32, fontWeight: '900', marginBottom: 8 },
+  emptyHistoryTitle: { fontSize: 18, fontWeight: '900', marginBottom: 4 },
+  emptyHistoryText: { fontSize: 13, lineHeight: 19, textAlign: 'center' },
 });

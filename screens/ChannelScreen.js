@@ -391,25 +391,9 @@ export default function ChannelScreen({ channel, onBack }) {
         </ScrollView>
 
         <View style={[styles.inputContainer, { borderTopColor: theme.border, backgroundColor: theme.bg }]}>
-          <TouchableOpacity
-            style={[styles.mediaBtn, { backgroundColor: theme.card, borderColor: theme.border }]}
-            onPress={pickImage}
-            disabled={uploadingMedia}
-          >
-            <Text style={{ fontSize: 18 }}>📷</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.mediaBtn, { backgroundColor: theme.card, borderColor: theme.border }]}
-            onPress={pickDocument}
-            disabled={uploadingMedia}
-          >
-            <Text style={{ fontSize: 18 }}>📎</Text>
-          </TouchableOpacity>
-
           <TextInput
             style={[styles.input, { backgroundColor: theme.input, borderColor: theme.border, color: theme.text }]}
-            placeholder={uploadingMedia ? 'uploading...' : 'say something...'}
+            placeholder={`stay in ${channel.name}...`}
             placeholderTextColor={theme.subtext}
             value={newPost}
             onChangeText={setNewPost}
@@ -484,7 +468,7 @@ const styles = StyleSheet.create({
   linkPreview: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 8, borderRadius: 10, borderWidth: 1, marginTop: 6 },
   linkIcon: { fontSize: 14 },
   linkUrl: { flex: 1, fontSize: 12 },
-  inputContainer: { flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 12, borderTopWidth: 1, gap: 8, alignItems: 'flex-end', marginBottom: 88 },
+  inputContainer: { flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 12, borderTopWidth: 1, gap: 8, alignItems: 'flex-end' },
   mediaBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   input: { flex: 1, borderRadius: 22, paddingHorizontal: 16, paddingVertical: 12, fontSize: 15, borderWidth: 1, maxHeight: 100 },
   postButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },

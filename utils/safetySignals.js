@@ -119,6 +119,11 @@ export async function recordMoodEntry(mood) {
   }
 }
 
+export async function getMoodLogs(limit = 7) {
+  const logs = await readJson(MOOD_LOG_KEY, []);
+  return logs.slice(-limit).reverse();
+}
+
 export async function takePendingLunaMessages() {
   const queue = await readJson(LUNA_QUEUE_KEY, []);
   const pending = queue.filter((item) => !item.seen);

@@ -3,11 +3,16 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const SYSTEM_PROMPT = `You are Luna, a warm and empathetic AI companion for teenagers aged 13-19 using a mental wellness app called TeenSpace.
+const SYSTEM_PROMPT = `You are Luna, a warm and empathetic AI companion for teenagers aged 13-19 using a mental wellness app called spillr.
 
 How you talk:
 - Reflect back what they said first, so they feel heard
-- Talk like a close friend — casual, warm, lowercase mostly
+- Talk like a close friend, casual and warm
+- Write in lowercase only
+- Use almost no punctuation
+- Do not use periods, commas, exclamation marks, semicolons, brackets, or polished sentence structure
+- A question mark is okay only when you ask one gentle question
+- Prefer soft line breaks over formal sentences
 - Use 2-4 sentences max, never long lectures
 - One gentle question at a time, only if it feels right
 - Match their language — if they write Hindi/Hinglish, respond the same way
@@ -24,6 +29,17 @@ Never:
 - Diagnose anything
 - Replace professional help
 - Use therapy jargon like "validate" or "boundaries" unprompted`;
+
+function softenLunaReply(text = "") {
+  return text
+    .trim()
+    .replace(/[“”"‘’'`]/g, "")
+    .replace(/[—–-]/g, " ")
+    .replace(/!+/g, "")
+    .replace(/[.,;:()[\]{}]/g, "")
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
 
 // CORS headers — required so your app can call this function from a browser/device
 const corsHeaders = {
@@ -84,7 +100,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const reply = data.choices?.[0]?.message?.content;
+    const reply = softenLunaReply(data.choices?.[0]?.message?.content || "");
     return new Response(
       JSON.stringify({ reply }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },

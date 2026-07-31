@@ -29,17 +29,17 @@ const LEGAL_SECTIONS = [
   {
     key: 'terms',
     title: 'terms & conditions',
-    body: 'spillr is a listening-first community. no bullying, hate speech, flirting, explicit content, private contact pressure, unsolicited advice, or unsafe behavior. content can be removed and accounts can be suspended to protect the community.',
+    body: 'spillr is a listening-first community for teens 13-19. by joining, you agree not to bully, harass, threaten, flirt with strangers, post explicit content, pressure anyone for private contact, spam, impersonate others, give unsolicited advice, or misuse reports. breaking rules can lead to message removal, comment removal, post removal, warnings, viewer-only limits, temporary suspension, permanent account ban, and removal of access to spaces, posts, match, or other community features.',
   },
   {
     key: 'privacy',
     title: 'privacy policy',
-    body: 'spillr stores account details, community posts, reports, moderation signals, and journal entries so the app can work and stay safer. journal entries are private to your account, but they are not end-to-end encrypted yet.',
+    body: 'spillr stores the information needed to run and protect the app, including account details, age range, username, email verification status, posts, comments, space messages, reports, moderation signals, safety actions, support emails, preferences, moods, and journal entries. journal entries are private to your account but are not end-to-end encrypted in this launch version. harmful public content may be reviewed, hidden, removed, reported, or kept as a moderation record so repeat abuse can be handled.',
   },
   {
     key: 'guidelines',
     title: 'community guidelines',
-    body: 'listen first, ask before advice, stay on topic in spaces, and use the help tab for crisis resources. spillr is not emergency care or a replacement for therapy.',
+    body: 'listen first, ask before giving advice, stay on topic in every space, and keep posts gentle. vent in vent spaces, celebrate in achievement spaces, and do not judge, diagnose, shame, flirt, ask for photos, ask for numbers or socials, sexualize conversations, mock someone, encourage self-harm, or share private information. spillr is not emergency care, therapy, or a replacement for professional support. serious safety concerns may lead to fast content removal and account restrictions.',
   },
 ];
 

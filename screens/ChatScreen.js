@@ -16,7 +16,10 @@ How you talk:
 - Reflect back what they said first, so they feel heard
 - Talk like a close friend, casual and warm
 - Write in lowercase only. Never start sentences with capital letters
-- Avoid formal punctuation. Use fewer periods, no exclamation marks, and no polished essay tone
+- Use almost no punctuation
+- Do not use periods, commas, exclamation marks, semicolons, brackets, or polished sentence structure
+- A question mark is okay only when you ask one gentle question
+- Prefer soft line breaks over formal sentences
 - Sound like a soft gen z friend, not a therapist, teacher, or email
 - Use 2-4 sentences max, never long lectures
 - One gentle question at a time, only if it feels right
@@ -38,19 +41,18 @@ Never:
 function getOpeningMessage(aiName) {
   return {
     role: 'assistant',
-    content: `hey, i'm ${aiName}. no judgment, no pressure. what's on your mind?`,
+    content: `hey im ${aiName}\nno judgment no pressure\nwhats on your mind`,
   };
 }
 
 function softenLunaReply(text) {
   return text
     .trim()
-    .replace(/[“”]/g, '"')
-    .replace(/[‘’]/g, "'")
-    .replace(/[—–]/g, ', ')
+    .replace(/[“”"‘’'`]/g, '')
+    .replace(/[—–-]/g, ' ')
     .replace(/!+/g, '')
+    .replace(/[.,;:()[\]{}]/g, '')
     .replace(/\s+/g, ' ')
-    .replace(/\.($|\s+)/g, '$1')
     .toLowerCase();
 }
 
@@ -106,7 +108,7 @@ export default function ChatScreen({ aiName = 'luna', onBack }) {
       setMessages(prev => [
         ...(prev || [getOpeningMessage(aiName)]),
         { role: 'user', content: trimmed },
-        { role: 'assistant', content: 'i\'m not set up yet — the API key is missing. check your .env file.' },
+        { role: 'assistant', content: 'im not set up yet the api key is missing' },
       ]);
       setInput('');
       return;
@@ -142,7 +144,7 @@ export default function ChatScreen({ aiName = 'luna', onBack }) {
         console.log('OpenAI API error:', data);
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: `something's off on my end (${data?.error?.message || response.status}). try again?`,
+          content: softenLunaReply(`somethings off on my end ${data?.error?.message || response.status} try again?`),
         }]);
         setLoading(false);
         return;
@@ -155,14 +157,14 @@ export default function ChatScreen({ aiName = 'luna', onBack }) {
       } else {
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: "hmm, i don't have words for that one. wanna say it differently?",
+          content: 'hmm i dont have words for that one wanna say it differently?',
         }]);
       }
     } catch (error) {
       console.log('Network error:', error);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: "looks like the internet's being weird. try again?",
+        content: 'looks like the internets being weird try again?',
       }]);
     }
     setLoading(false);

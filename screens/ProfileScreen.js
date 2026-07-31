@@ -12,28 +12,49 @@ const DOCS = {
   privacy: {
     title: 'privacy policy',
     body: [
-      'spillr stores the information needed to run the app: account details, username, community posts, comments, reports, moderation signals, and support messages.',
-      'journal entries are private to your account, but they are not end-to-end encrypted in this launch version.',
-      'reports and safety signals may be reviewed so harmful content and unsafe accounts can be removed.',
-      'you can request account deletion from settings. deletion needs password verification first.',
+      'spillr stores the information needed to create and protect your account, including your email address, username, age range, email verification status, login/session data, app preferences, safety onboarding answers, and whether you agreed to the terms, privacy policy, and community guidelines.',
+      'spillr stores community activity so the app can work. this can include space messages, daily posts, comments, reports, moderation decisions, warnings, suspensions, bans, deleted-content records, match activity, and safety signals such as repeated rule breaking or harmful wording.',
+      'journal entries, mood logs, and private reflections are meant to be personal to your account. in this launch version they are not end-to-end encrypted, so you should not use the journal to store passwords, legal documents, addresses, private contact details, or anything you would not want stored in an app database.',
+      'luna chat may be saved on your device and may be processed by AI services so the bot can respond. luna is not a therapist, doctor, crisis worker, or emergency service. do not rely on luna for diagnosis, medical decisions, or urgent safety help.',
+      'reports can include the reported message, reporter details, reported user details, reason selected, timestamps, and moderator actions. reports may be reviewed to remove unsafe content, detect repeat abuse, suspend accounts, or ban accounts.',
+      'we may remove or limit content when it includes bullying, harassment, hate speech, sexual content, private contact pressure, spam, threats, self-harm encouragement, graphic details, scams, impersonation, or anything that risks user safety.',
+      'if you contact support or send feedback, your message, email address, username, and relevant account context may be used to reply, investigate bugs, handle reports, or improve safety.',
+      'you can delete your account from settings after password verification. deletion removes your account and the community data covered by the deletion helper, but some safety records may need to stay in backup, logs, or moderation records for abuse prevention and legal/safety reasons.',
+      'spillr is built for teens, so privacy and safety matter a lot. still, no online community can promise perfect privacy. do not share your phone number, address, school address, passwords, private photos, financial details, or sensitive identity documents with strangers.',
     ],
   },
   terms: {
     title: 'terms & conditions',
     body: [
-      'spillr is a listening-first space. it is not emergency care, therapy, or a replacement for professional support.',
-      'do not bully, harass, flirt with strangers, request private contact, post explicit content, pressure people, or give unsolicited advice.',
-      'spillr can remove content, limit features, or suspend accounts to protect the community.',
-      'public launch users must keep their email verified to participate in spaces and posts.',
+      'spillr is a listening-first teen community for users aged 13-19. by creating an account, you agree that you are in the allowed age range and that you will use the app respectfully, honestly, and safely.',
+      'spillr is not emergency care, therapy, medical treatment, legal advice, or a replacement for a trusted adult or licensed professional. if someone may be in immediate danger, use local emergency help or the crisis resources in the help tab.',
+      'you may not bully, harass, threaten, shame, mock, stalk, impersonate, exploit, manipulate, sexualize, flirt with strangers, request private contact, ask for photos, pressure someone into advice, post explicit content, encourage self-harm, spread hate speech, spam, scam, or use spillr to target another person.',
+      'you may not post someone else\'s private information, including phone numbers, addresses, school details, usernames from other platforms, photos, screenshots, health details, family details, or messages shared outside their intended context.',
+      'spaces must stay on topic. venting belongs in vent spaces, achievements belong in achievement spaces, school topics belong in school spaces, and unrelated posts may be removed or moved if they disrupt the space.',
+      'posts and comments must stay text-first, gentle, non-judgemental, and safe. no unsolicited advice unless someone clearly asks for it. no diagnosing people. no telling someone what they must do with their life, body, relationship, family, health, or safety.',
+      'match is for a limited connection, not pressure. you may not use match to demand private contact, flirt with minors, push someone to continue talking, or punish someone for not keeping the match.',
+      'reports must be honest. false reporting, mass reporting, revenge reporting, or reporting someone because you dislike them can lead to warnings, limits, suspension, or account ban.',
+      'if you break rules, spillr may remove your message, delete your post, delete your comment, hide your content, send a warning, limit you to viewer mode, block posting/commenting/messaging, temporarily suspend your account, permanently ban your account, remove you from matches, or preserve moderation records to stop repeat harm.',
+      'serious violations may lead to immediate suspension or permanent ban without multiple warnings. this includes sexual content involving minors, threats, doxxing, grooming behavior, explicit harassment, hate speech, self-harm encouragement, repeated private contact pressure, or attempts to bypass moderation.',
+      'public launch users must keep their email verified to participate in spaces, posts, comments, match, and other community features. unverified users may be viewer-only.',
+      'we may update these terms as the app grows. continued use after updates means you accept the updated rules.',
     ],
   },
   guidelines: {
     title: 'community guidelines',
     body: [
-      'listen first. ask before giving advice.',
-      'stay on topic in spaces. vent in rants, celebrate in wins, and keep school/home/mental health posts relevant.',
-      'no judgement, hate speech, sexual comments, bullying, spam, or private contact pressure.',
-      'if someone may be in danger, encourage them to contact trusted adults or crisis help instead of trying to handle it alone.',
+      'listen first. the default response on spillr is not fixing, judging, debating, diagnosing, or teaching. reflect, comfort, ask what kind of support they want, and give advice only when someone clearly asks.',
+      'stay on topic. vent in vent spaces, celebrate in achievement spaces, keep school posts about school, and keep mental health spaces focused on feelings, coping, and support. off-topic messages may be removed.',
+      'no bullying or harassment. this includes insults, mocking, name-calling, dogpiling, threats, repeated unwanted messages, targeting someone\'s looks, body, caste, religion, gender, sexuality, class, disability, family, grades, trauma, or mental health.',
+      'no hate speech. slurs, dehumanizing language, extremist praise, identity-based attacks, or jokes that make a group unsafe can lead to immediate removal and account restriction.',
+      'no flirting, sexual comments, grooming behavior, explicit content, asking for photos, rating bodies, asking relationship/sexual details, or trying to move minors to private platforms.',
+      'no private contact pressure. do not ask for phone numbers, addresses, school names, socials, private photos, video calls, or off-app chats. do not guilt someone for saying no.',
+      'no judgement or unsolicited advice. do not say things like "you should have", "just do this", "you are overreacting", "your parents are right", or "break up now" unless someone explicitly asked for advice, and even then keep it gentle.',
+      'no crisis handling alone. if someone mentions immediate danger, self-harm, suicide, abuse, or feeling unsafe, encourage trusted adults, emergency help, or crisis resources. do not promise secrecy or try to become their only support.',
+      'no spam, scams, promotions, repeated copy-paste messages, fake giveaways, external links meant to move users away from spillr, or content made only to get attention.',
+      'no impersonation. do not pretend to be another user, a therapist, a moderator, a crisis worker, spillr staff, or someone with authority you do not have.',
+      'use reports carefully. report harmful messages or users when something feels unsafe. reported messages can be removed quickly. reported users may receive warnings, restrictions, temporary suspension, or permanent ban depending on severity and repeat behavior.',
+      'possible consequences include content removal, comment removal, post removal, message deletion, warning, loss of posting access, loss of commenting access, loss of spaces access, loss of match access, viewer-only mode, temporary suspension, permanent ban, and account deletion in severe cases.',
     ],
   },
 };
@@ -51,6 +72,7 @@ export default function ProfileScreen({ username, user, isEmailVerified, onRefre
   const [draftUsername, setDraftUsername] = useState(username || '');
   const [savingProfile, setSavingProfile] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [savingPassword, setSavingPassword] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -116,12 +138,28 @@ export default function ProfileScreen({ username, user, isEmailVerified, onRefre
   };
 
   const changePassword = async () => {
+    if (!currentPassword.trim()) {
+      Alert.alert('old password needed', 'enter your current password before choosing a new one.');
+      return;
+    }
+
     if (newPassword.length < 6) {
       Alert.alert('too short', 'please use at least 6 characters.');
       return;
     }
 
     setSavingPassword(true);
+    const signIn = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    });
+
+    if (signIn.error) {
+      setSavingPassword(false);
+      Alert.alert('old password issue', 'that old password did not match.');
+      return;
+    }
+
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     setSavingPassword(false);
 
@@ -129,6 +167,7 @@ export default function ProfileScreen({ username, user, isEmailVerified, onRefre
       Alert.alert('could not update', error.message);
     } else {
       setPasswordOpen(false);
+      setCurrentPassword('');
       setNewPassword('');
       Alert.alert('password updated', 'your password has been changed.');
     }
@@ -347,6 +386,14 @@ export default function ProfileScreen({ username, user, isEmailVerified, onRefre
             <Text style={[styles.docTitle, { color: theme.text }]}>change password</Text>
             <TextInput
               style={[styles.input, { backgroundColor: theme.input, borderColor: theme.border, color: theme.text }]}
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              placeholder="old password"
+              placeholderTextColor={theme.subtext}
+              secureTextEntry
+            />
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.input, borderColor: theme.border, color: theme.text }]}
               value={newPassword}
               onChangeText={setNewPassword}
               placeholder="new password"
@@ -356,7 +403,14 @@ export default function ProfileScreen({ username, user, isEmailVerified, onRefre
             <TouchableOpacity style={[styles.primaryBtn, { backgroundColor: accentColor }, savingPassword && styles.disabled]} onPress={changePassword} disabled={savingPassword}>
               <Text style={styles.primaryText}>{savingPassword ? 'saving...' : 'update password'}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.secondaryBtn, { borderColor: theme.border }]} onPress={() => setPasswordOpen(false)}>
+            <TouchableOpacity
+              style={[styles.secondaryBtn, { borderColor: theme.border }]}
+              onPress={() => {
+                setPasswordOpen(false);
+                setCurrentPassword('');
+                setNewPassword('');
+              }}
+            >
               <Text style={[styles.secondaryText, { color: theme.text }]}>cancel</Text>
             </TouchableOpacity>
           </View>
@@ -377,7 +431,7 @@ export default function ProfileScreen({ username, user, isEmailVerified, onRefre
               secureTextEntry
             />
             <TouchableOpacity style={[styles.primaryBtn, { backgroundColor: '#dc2626' }, deleting && styles.disabled]} onPress={deleteAccount} disabled={deleting}>
-              <Text style={styles.primaryText}>{deleting ? 'deleting...' : 'delete forever'}</Text>
+              <Text style={styles.primaryText}>{deleting ? 'deleting...' : 'delete'}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.secondaryBtn, { borderColor: theme.border }]} onPress={() => setDeleteOpen(false)}>
               <Text style={[styles.secondaryText, { color: theme.text }]}>cancel</Text>

@@ -1,10 +1,10 @@
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput, Pressable, Animated, Easing, Modal } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput, Pressable, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import ChannelScreen from './ChannelScreen';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme, moodColors } from '../context/ThemeContext';
 import { getMoodLogs, recordMoodEntry, trackAppOpen } from '../utils/safetySignals';
 
@@ -25,16 +25,10 @@ const MOODS = [
   { key: 'soft', label: 'soft', face: '♡', color: moodColors.soft },
 ];
 
-const PROMPTS = [
-  'what needs to leave your head today?',
-  'what did you make it through yesterday?',
-  'what feeling is taking up the most space?',
-  'what would feel 2 percent lighter right now?',
-];
-
+const DAILY_GREETINGS = ['hello, you', 'hey, you', 'soft check-in', 'hi, spillr'];
 const LIVE_LABELS = ['awake', 'listening', 'soft mode', 'no judgement', 'here'];
 
-export default function HomeScreen({ onOpenChat, aiName = 'luna', onSpacesOpenChange, isEmailVerified = false }) {
+export default function HomeScreen({ onOpenChat, aiName = 'luna', onAiNameChange, onSpacesOpenChange, isEmailVerified = false }) {
   const [activeChannel, setActiveChannel] = useState(null);
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState(aiName);
@@ -46,27 +40,23 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna', onSpacesOpenCh
   const [moodHistoryOpen, setMoodHistoryOpen] = useState(false);
   const { theme, accentColor, gradient } = useTheme();
 
-  const prompt = PROMPTS[new Date().getDate() % PROMPTS.length];
-  const liveLabel = LIVE_LABELS[new Date().getDate() % LIVE_LABELS.length];
   const hour = new Date().getHours();
-  const isLateNight = hour >= 0 && hour < 5;
-  const greeting = isLateNight ? 'rough night?' : 'hello, you';
-  const reflection = isLateNight ? "i'm awake too." : 'how do you feel about your current emotions?';
-
-  const pulse = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 0.35, duration: 950, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1, duration: 950, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
+  const dayIndex = new Date().getDate();
+  const greeting = hour >= 0 && hour < 5
+    ? 'rough night?'
+    : DAILY_GREETINGS[dayIndex % DAILY_GREETINGS.length];
+  const liveLabel = LIVE_LABELS[dayIndex % LIVE_LABELS.length];
+  const visibleOpenNote = openNote?.kind === 'streak' ? null : openNote;
 
   useEffect(() => {
     trackAppOpen().then(setOpenNote);
     getMoodLogs(5).then(setRecentMoods);
   }, []);
+
+  useEffect(() => {
+    setLocalAiName(aiName);
+    setTempName(aiName);
+  }, [aiName]);
 
   useEffect(() => {
     onSpacesOpenChange?.(Boolean(activeChannel));
@@ -84,6 +74,13 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna', onSpacesOpenCh
   const handleAI = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onOpenChat();
+  };
+  const saveName = () => {
+    const nextName = tempName.trim() || 'luna';
+    setLocalAiName(nextName);
+    setTempName(nextName);
+    onAiNameChange?.(nextName);
+    setEditingName(false);
   };
   const handleMood = async (mood) => {
     setSelectedMood(mood.key);
@@ -129,37 +126,45 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna', onSpacesOpenCh
             <Text style={[styles.title, { color: theme.text }]}>{greeting}</Text>
           </View>
           <View style={[styles.liveBadge, { backgroundColor: theme.card, borderColor: theme.border }]}>
-            <Animated.View style={[styles.liveDot, { backgroundColor: accentColor, opacity: pulse }]} />
+            <View style={[styles.liveDot, { backgroundColor: accentColor }]} />
             <Text style={[styles.liveText, { color: theme.subtext }]}>{liveLabel}</Text>
           </View>
         </View>
 
-        <LinearGradient colors={gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.reflectionCard}>
-          <View style={styles.cardLogo}>
-            <View style={styles.diamond} />
-            <View style={[styles.diamond, styles.diamondOffset]} />
-          </View>
-          <Text style={styles.reflectionTitle}>{reflection}</Text>
-          <View style={styles.reflectionInput}>
-            <Text style={styles.reflectionPlaceholder}>{prompt}</Text>
-            <Ionicons name="sparkles" size={18} color="#18151d" />
-          </View>
-        </LinearGradient>
-
-        {openNote && (
-          <View style={[styles.noteCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-            <View style={[styles.noteIcon, { backgroundColor: accentColor + '28' }]}>
-              <Ionicons name="sparkles" size={18} color={accentColor} />
+        <Pressable onPress={editingName ? undefined : handleAI} style={({ pressed }) => [pressed && !editingName && { transform: [{ scale: 0.98 }] }]}>
+          <View style={[styles.lunaCard, { backgroundColor: theme.text }]}>
+            <View style={[styles.lunaIcon, { backgroundColor: theme.card }]}>
+              <Ionicons name="moon" size={24} color={accentColor} />
             </View>
-            <View style={styles.noteCopy}>
-              <Text style={[styles.noteTitle, { color: theme.text }]}>{openNote.title}</Text>
-              <Text style={[styles.noteBody, { color: theme.subtext }]}>{openNote.body}</Text>
-              {openNote.streakNote && (
-                <Text style={[styles.noteTiny, { color: accentColor }]}>{openNote.streakNote}</Text>
+            <View style={styles.lunaText}>
+              {editingName ? (
+                <TextInput
+                  style={[styles.aiNameInput, { color: theme.card, borderBottomColor: theme.card }]}
+                  value={tempName}
+                  onChangeText={setTempName}
+                  autoFocus
+                  onBlur={saveName}
+                  onSubmitEditing={saveName}
+                  maxLength={20}
+                />
+              ) : (
+                <View style={styles.aiNameRow}>
+                  <Text style={[styles.lunaTitle, { color: theme.card }]}>{localAiName}</Text>
+                  <TouchableOpacity onPress={(event) => {
+                    event?.stopPropagation?.();
+                    tap();
+                    setTempName(localAiName);
+                    setEditingName(true);
+                  }}>
+                    <Ionicons name="pencil" size={12} color={theme.card} />
+                  </TouchableOpacity>
+                </View>
               )}
+              <Text style={[styles.lunaSub, { color: theme.card }]}>tap to spill without advice</Text>
             </View>
+            <Ionicons name="arrow-forward" size={18} color={theme.card} />
           </View>
-        )}
+        </Pressable>
 
         <View style={[styles.moodPanel, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <View style={styles.panelHeader}>
@@ -190,45 +195,24 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna', onSpacesOpenCh
           {!!moodNote && <Text style={[styles.moodNote, { color: accentColor }]}>{moodNote}</Text>}
         </View>
 
-        <Pressable onPress={handleAI} style={({ pressed }) => [pressed && { transform: [{ scale: 0.98 }] }]}>
-          <View style={[styles.lunaCard, { backgroundColor: theme.text }]}>
-            <View style={[styles.lunaIcon, { backgroundColor: theme.card }]}>
-              <Ionicons name="moon" size={24} color={accentColor} />
+        {visibleOpenNote && (
+          <View style={[
+            styles.noteCard,
+            visibleOpenNote.kind === 'late-night' && styles.noteCardCompact,
+            { backgroundColor: visibleOpenNote.kind === 'late-night' ? accentColor + '18' : theme.card, borderColor: visibleOpenNote.kind === 'late-night' ? accentColor + '40' : theme.border },
+          ]}>
+            <View style={[styles.noteIcon, visibleOpenNote.kind === 'late-night' && styles.noteIconCompact, { backgroundColor: accentColor + '28' }]}>
+              <Ionicons name={visibleOpenNote.kind === 'late-night' ? 'moon' : 'sparkles'} size={visibleOpenNote.kind === 'late-night' ? 15 : 18} color={accentColor} />
             </View>
-            <View style={styles.lunaText}>
-              {editingName ? (
-                <TextInput
-                  style={[styles.aiNameInput, { color: theme.card, borderBottomColor: theme.card }]}
-                  value={tempName}
-                  onChangeText={setTempName}
-                  autoFocus
-                  onBlur={() => {
-                    setLocalAiName(tempName || 'luna');
-                    setEditingName(false);
-                  }}
-                  onSubmitEditing={() => {
-                    setLocalAiName(tempName || 'luna');
-                    setEditingName(false);
-                  }}
-                  maxLength={20}
-                />
-              ) : (
-                <View style={styles.aiNameRow}>
-                  <Text style={[styles.lunaTitle, { color: theme.card }]}>{localAiName}</Text>
-                  <TouchableOpacity onPress={() => {
-                    tap();
-                    setTempName(localAiName);
-                    setEditingName(true);
-                  }}>
-                    <Ionicons name="pencil" size={12} color={theme.card} />
-                  </TouchableOpacity>
-                </View>
+            <View style={styles.noteCopy}>
+              <Text style={[styles.noteTitle, visibleOpenNote.kind === 'late-night' && styles.noteTitleCompact, { color: theme.text }]}>{visibleOpenNote.title}</Text>
+              <Text style={[styles.noteBody, visibleOpenNote.kind === 'late-night' && styles.noteBodyCompact, { color: theme.subtext }]}>{visibleOpenNote.body}</Text>
+              {visibleOpenNote.streakNote && visibleOpenNote.kind !== 'late-night' && (
+                <Text style={[styles.noteTiny, { color: accentColor }]}>{visibleOpenNote.streakNote}</Text>
               )}
-              <Text style={[styles.lunaSub, { color: theme.card }]}>tap to spill without advice</Text>
             </View>
-            <Ionicons name="arrow-forward" size={18} color={theme.card} />
           </View>
-        </Pressable>
+        )}
 
         <Text style={[styles.sectionTitle, { color: theme.text }]}>spaces based on your needs</Text>
         <View style={styles.spaceGrid}>
@@ -322,18 +306,15 @@ const styles = StyleSheet.create({
   liveBadge: { flexDirection: 'row', alignItems: 'center', gap: 7, borderRadius: 22, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 8 },
   liveDot: { width: 7, height: 7, borderRadius: 4 },
   liveText: { fontSize: 12, fontWeight: '700' },
-  reflectionCard: { borderRadius: 34, padding: 24, minHeight: 244, justifyContent: 'space-between', marginBottom: 16 },
-  cardLogo: { width: 38, height: 38, position: 'relative' },
-  diamond: { position: 'absolute', width: 16, height: 16, backgroundColor: '#18151d', transform: [{ rotate: '45deg' }], left: 3, top: 4 },
-  diamondOffset: { left: 16, top: 17 },
-  reflectionTitle: { color: '#18151d', fontSize: 32, lineHeight: 38, fontWeight: '800', maxWidth: 290 },
-  reflectionInput: { minHeight: 58, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.45)', paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  reflectionPlaceholder: { color: 'rgba(24,21,29,0.62)', fontSize: 14, fontWeight: '700', flex: 1, marginRight: 10 },
   noteCard: { borderRadius: 26, borderWidth: 1, padding: 14, flexDirection: 'row', gap: 12, marginBottom: 16 },
+  noteCardCompact: { borderRadius: 22, padding: 11, marginTop: -4 },
   noteIcon: { width: 42, height: 42, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  noteIconCompact: { width: 34, height: 34, borderRadius: 15 },
   noteCopy: { flex: 1 },
   noteTitle: { fontSize: 15, fontWeight: '800', marginBottom: 3 },
+  noteTitleCompact: { fontSize: 13, marginBottom: 1 },
   noteBody: { fontSize: 13, lineHeight: 19 },
+  noteBodyCompact: { fontSize: 12, lineHeight: 16 },
   noteTiny: { fontSize: 12, fontWeight: '800', marginTop: 6 },
   moodPanel: { borderRadius: 30, borderWidth: 1, padding: 18, marginBottom: 16 },
   panelHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
@@ -344,7 +325,7 @@ const styles = StyleSheet.create({
   moodFace: { fontSize: 20, color: '#18151d', fontWeight: '900', lineHeight: 22 },
   moodLabel: { color: '#18151d', fontSize: 9, fontWeight: '800', marginTop: 4 },
   moodNote: { fontSize: 12, fontWeight: '800', marginTop: 12 },
-  lunaCard: { borderRadius: 30, minHeight: 94, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 26 },
+  lunaCard: { borderRadius: 30, minHeight: 94, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 16 },
   lunaIcon: { width: 54, height: 54, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   lunaText: { flex: 1 },
   aiNameRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },

@@ -24,6 +24,7 @@ import { AUTH_REDIRECT_URL, parseSupabaseAuthUrl } from './utils/authLinks';
 const NOTIF_ONBOARDED_KEY = '@teenspace_notif_onboarded';
 const Tab = createBottomTabNavigator();
 const LAST_OPEN_KEY = '@teenspace_last_open';
+const AI_NAME_KEY = '@spillr_ai_name';
 
 const LEGAL_SECTIONS = [
   {
@@ -139,6 +140,18 @@ function MainApp({ username, user, isEmailVerified, onRefreshUser }) {
     elevation: 10,
   };
 
+  useEffect(() => {
+    AsyncStorage.getItem(AI_NAME_KEY).then((savedName) => {
+      if (savedName?.trim()) setAiName(savedName.trim());
+    });
+  }, []);
+
+  const saveAiName = async (name) => {
+    const nextName = name.trim() || 'luna';
+    setAiName(nextName);
+    await AsyncStorage.setItem(AI_NAME_KEY, nextName);
+  };
+
   if (chatOpen) {
     return <ChatScreen aiName={aiName} onBack={() => setChatOpen(false)} />;
   }
@@ -170,6 +183,7 @@ function MainApp({ username, user, isEmailVerified, onRefreshUser }) {
             <HomeScreen
               onOpenChat={() => setChatOpen(true)}
               aiName={aiName}
+              onAiNameChange={saveAiName}
               onSpacesOpenChange={setSpacesOpen}
               isEmailVerified={isEmailVerified}
             />

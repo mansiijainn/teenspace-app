@@ -1,4 +1,23 @@
--- Run this in the Supabase SQL editor before turning on the posts tab in beta.
+-- Run this in the Supabase SQL editor before turning on the posts tab for public launch.
+-- It creates the daily post feed and keeps unverified emails in viewer mode.
+
+create or replace function public.is_email_verified()
+returns boolean
+language sql
+stable
+security definer
+set search_path = auth, public
+as $$
+  select exists (
+    select 1
+    from auth.users
+    where id = auth.uid()
+      and email_confirmed_at is not null
+  );
+$$;
+
+revoke all on function public.is_email_verified() from public;
+grant execute on function public.is_email_verified() to authenticated;
 
 create table if not exists public.daily_posts (
   id uuid primary key default gen_random_uuid(),
@@ -33,7 +52,7 @@ drop policy if exists "users can create one daily post" on public.daily_posts;
 create policy "users can create one daily post"
 on public.daily_posts for insert
 to authenticated
-with check (auth.uid() = user_id);
+with check (auth.uid() = user_id and public.is_email_verified());
 
 drop policy if exists "users can delete their own daily posts" on public.daily_posts;
 create policy "users can delete their own daily posts"
@@ -51,7 +70,7 @@ drop policy if exists "users can comment as themselves" on public.daily_post_com
 create policy "users can comment as themselves"
 on public.daily_post_comments for insert
 to authenticated
-with check (auth.uid() = user_id);
+with check (auth.uid() = user_id and public.is_email_verified());
 
 drop policy if exists "users can delete their own comments" on public.daily_post_comments;
 create policy "users can delete their own comments"

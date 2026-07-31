@@ -29,7 +29,7 @@ function timeAgo(timestamp) {
   return `${Math.floor(hrs / 24)}d`;
 }
 
-export default function PostsScreen() {
+export default function PostsScreen({ isEmailVerified = false }) {
   const [posts, setPosts] = useState([]);
   const [comments, setComments] = useState({});
   const [content, setContent] = useState('');
@@ -43,6 +43,7 @@ export default function PostsScreen() {
 
   const prompt = PROMPTS[promptIndex];
   const hasPostedToday = posts.some(post => post.user_id === currentUser?.id && post.post_day === todayKey());
+  const canParticipate = Boolean(isEmailVerified);
 
   useEffect(() => {
     bootstrap();
@@ -106,6 +107,10 @@ export default function PostsScreen() {
 
   const submitPost = async () => {
     if (!content.trim() || hasPostedToday || loading) return;
+    if (!canParticipate) {
+      Alert.alert('verify email first', 'you can read posts for now. verify your email before posting or commenting.');
+      return;
+    }
     setLoading(true);
 
     const modResult = await moderatePost(content.trim());
@@ -137,6 +142,10 @@ export default function PostsScreen() {
   const submitComment = async (postId) => {
     const draft = commentDrafts[postId]?.trim();
     if (!draft) return;
+    if (!canParticipate) {
+      Alert.alert('verify email first', 'viewer mode is on until your email is verified.');
+      return;
+    }
 
     const modResult = await moderatePost(draft);
     if (!modResult.safe && modResult.severity !== 'low') {
@@ -173,6 +182,14 @@ export default function PostsScreen() {
         </View>
 
         <View style={[styles.composer, { backgroundColor: theme.card, borderColor: theme.border, shadowColor: theme.shadow }]}>
+          {!canParticipate && (
+            <View style={[styles.viewerNotice, { backgroundColor: accentColor + '20' }]}>
+              <Ionicons name="mail-unread-outline" size={16} color={accentColor} />
+              <Text style={[styles.viewerNoticeText, { color: theme.text }]}>
+                viewer mode. verify your email before posting.
+              </Text>
+            </View>
+          )}
           <View style={styles.promptRow}>
             <Text style={[styles.promptLabel, { color: theme.subtext }]}>prompt</Text>
             <TouchableOpacity style={[styles.shuffleBtn, { backgroundColor: accentColor + '24' }]} onPress={() => setPromptIndex((promptIndex + 1) % PROMPTS.length)}>
@@ -189,14 +206,14 @@ export default function PostsScreen() {
             placeholderTextColor={theme.subtext}
             multiline
             maxLength={420}
-            editable={!hasPostedToday}
+            editable={!hasPostedToday && canParticipate}
           />
           <View style={styles.composerBottom}>
             <Text style={[styles.count, { color: theme.subtext }]}>{content.length}/420</Text>
             <TouchableOpacity
-              style={[styles.postButton, { backgroundColor: theme.text }, (!content.trim() || hasPostedToday || loading) && styles.disabled]}
+              style={[styles.postButton, { backgroundColor: theme.text }, (!content.trim() || hasPostedToday || loading || !canParticipate) && styles.disabled]}
               onPress={submitPost}
-              disabled={!content.trim() || hasPostedToday || loading}
+              disabled={!content.trim() || hasPostedToday || loading || !canParticipate}
             >
               <Text style={[styles.postButtonText, { color: theme.card }]}>{loading ? 'posting...' : 'post'}</Text>
             </TouchableOpacity>
@@ -241,8 +258,13 @@ export default function PostsScreen() {
                   placeholder="soft comment..."
                   placeholderTextColor={theme.subtext}
                   maxLength={180}
+                  editable={canParticipate}
                 />
-                <TouchableOpacity onPress={() => submitComment(post.id)} style={[styles.commentBtn, { backgroundColor: theme.text }]}>
+                <TouchableOpacity
+                  onPress={() => submitComment(post.id)}
+                  style={[styles.commentBtn, { backgroundColor: theme.text }, !canParticipate && styles.disabled]}
+                  disabled={!canParticipate}
+                >
                   <Ionicons name="send" size={14} color={theme.card} />
                 </TouchableOpacity>
               </View>
@@ -275,6 +297,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   promptRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  viewerNotice: { borderRadius: 20, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  viewerNoticeText: { flex: 1, fontSize: 12, lineHeight: 17, fontWeight: '800' },
   promptLabel: { fontSize: 12, fontWeight: '900', textTransform: 'uppercase' },
   shuffleBtn: { borderRadius: 18, paddingHorizontal: 11, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 5 },
   shuffle: { fontSize: 12, fontWeight: '900' },

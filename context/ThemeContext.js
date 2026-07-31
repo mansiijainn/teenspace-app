@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react';
+import { useColorScheme } from 'react-native';
 
 const ThemeContext = createContext();
 
@@ -57,9 +58,13 @@ export const moodColors = {
 };
 
 export function ThemeProvider({ children }) {
+  const systemScheme                  = useColorScheme();
   const [mode, setMode]               = useState('light');
   const [accent, setAccent]           = useState('blossom');
   const [customColor, setCustomColor] = useState(null);
+  const activeMode = mode === 'system'
+    ? (systemScheme === 'dark' ? 'dark' : 'light')
+    : mode;
 
   const accentColor = accent === 'custom' && customColor
     ? customColor
@@ -75,7 +80,7 @@ export function ThemeProvider({ children }) {
       setAccent,
       customColor,
       setCustomColor,
-      theme: themes[mode],
+      theme: themes[activeMode],
       accentColor,
       gradient,
     }}>

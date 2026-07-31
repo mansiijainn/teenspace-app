@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform, Alert, Image, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase';
 import { useTheme } from '../context/ThemeContext';
@@ -31,7 +32,7 @@ function extractUrls(text) {
   return text.match(urlRegex) || [];
 }
 
-export default function ChannelScreen({ channel, onBack }) {
+export default function ChannelScreen({ channel, onBack, isEmailVerified = false }) {
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState('');
   const [loading, setLoading] = useState(false);
@@ -182,6 +183,10 @@ export default function ChannelScreen({ channel, onBack }) {
 
   const submitPost = async () => {
     if (!newPost.trim()) return;
+    if (!isEmailVerified) {
+      Alert.alert('verify email first', 'you can read spaces for now. verify your email before sending messages.');
+      return;
+    }
     setLoading(true);
 
     try {
@@ -372,6 +377,15 @@ export default function ChannelScreen({ channel, onBack }) {
           <View style={{ width: 60 }} />
         </View>
 
+        {!isEmailVerified && (
+          <View style={[styles.viewerNotice, { backgroundColor: accentColor + '20', borderColor: accentColor + '44' }]}>
+            <Ionicons name="mail-unread-outline" size={16} color={accentColor} />
+            <Text style={[styles.viewerNoticeText, { color: theme.text }]}>
+              viewer mode. verify your email before messaging in spaces.
+            </Text>
+          </View>
+        )}
+
         <ScrollView
           ref={scrollRef}
           style={styles.posts}
@@ -399,12 +413,12 @@ export default function ChannelScreen({ channel, onBack }) {
             onChangeText={setNewPost}
             multiline
             maxLength={500}
-            editable={!uploadingMedia}
+            editable={!uploadingMedia && isEmailVerified}
           />
           <TouchableOpacity
-            style={[styles.postButton, { backgroundColor: accentColor }, (!newPost.trim() || loading || uploadingMedia) && styles.postButtonDisabled]}
+            style={[styles.postButton, { backgroundColor: accentColor }, (!newPost.trim() || loading || uploadingMedia || !isEmailVerified) && styles.postButtonDisabled]}
             onPress={submitPost}
-            disabled={!newPost.trim() || loading || uploadingMedia}
+            disabled={!newPost.trim() || loading || uploadingMedia || !isEmailVerified}
           >
             <Text style={styles.postButtonText}>↑</Text>
           </TouchableOpacity>
@@ -428,6 +442,8 @@ const styles = StyleSheet.create({
   backButton: { width: 60 },
   backText: { fontSize: 15 },
   channelTitle: { fontSize: 17, fontWeight: '600' },
+  viewerNotice: { borderWidth: 1, borderRadius: 20, padding: 12, marginHorizontal: 12, marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  viewerNoticeText: { flex: 1, fontSize: 12, lineHeight: 17, fontWeight: '800' },
   posts: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
   empty: { alignItems: 'center', marginTop: 80 },
   emptyEmoji: { fontSize: 48, marginBottom: 12 },

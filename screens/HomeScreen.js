@@ -34,7 +34,7 @@ const PROMPTS = [
 
 const LIVE_LABELS = ['awake', 'listening', 'soft mode', 'no judgement', 'here'];
 
-export default function HomeScreen({ onOpenChat, aiName = 'luna', onSpacesOpenChange }) {
+export default function HomeScreen({ onOpenChat, aiName = 'luna', onSpacesOpenChange, isEmailVerified = false }) {
   const [activeChannel, setActiveChannel] = useState(null);
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState(aiName);
@@ -111,7 +111,13 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna', onSpacesOpenCh
   };
 
   if (activeChannel) {
-    return <ChannelScreen channel={activeChannel} onBack={() => setActiveChannel(null)} />;
+    return (
+      <ChannelScreen
+        channel={activeChannel}
+        onBack={() => setActiveChannel(null)}
+        isEmailVerified={isEmailVerified}
+      />
+    );
   }
 
   return (

@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NotificationOnboardingScreen from './screens/NotificationOnboardingScreen';
 import VibesScreen from './screens/VibesScreen';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ScrollView, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -18,10 +18,30 @@ import UsernameScreen from './screens/UsernameScreen';
 import JournalScreen from './screens/JournalScreen';
 import HelpScreen from './screens/HelpScreen';
 import PostsScreen from './screens/PostsScreen';
+import SpillrAlertHost from './components/SpillrAlert';
+import { AUTH_REDIRECT_URL, parseSupabaseAuthUrl } from './utils/authLinks';
 
 const NOTIF_ONBOARDED_KEY = '@teenspace_notif_onboarded';
 const Tab = createBottomTabNavigator();
 const LAST_OPEN_KEY = '@teenspace_last_open';
+
+const LEGAL_SECTIONS = [
+  {
+    key: 'terms',
+    title: 'terms & conditions',
+    body: 'spillr is a listening-first community. no bullying, hate speech, flirting, explicit content, private contact pressure, unsolicited advice, or unsafe behavior. content can be removed and accounts can be suspended to protect the community.',
+  },
+  {
+    key: 'privacy',
+    title: 'privacy policy',
+    body: 'spillr stores account details, community posts, reports, moderation signals, and journal entries so the app can work and stay safer. journal entries are private to your account, but they are not end-to-end encrypted yet.',
+  },
+  {
+    key: 'guidelines',
+    title: 'community guidelines',
+    body: 'listen first, ask before advice, stay on topic in spaces, and use the help tab for crisis resources. spillr is not emergency care or a replacement for therapy.',
+  },
+];
 
 
 const SCREENING_QUESTIONS = [
@@ -93,7 +113,7 @@ function getScreeningFailure(answers) {
   };
 }
 
-function MainApp({ username }) {
+function MainApp({ username, user, isEmailVerified, onRefreshUser }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [aiName, setAiName] = useState('luna');
   const [spacesOpen, setSpacesOpen] = useState(false);
@@ -151,6 +171,7 @@ function MainApp({ username }) {
               onOpenChat={() => setChatOpen(true)}
               aiName={aiName}
               onSpacesOpenChange={setSpacesOpen}
+              isEmailVerified={isEmailVerified}
             />
           )}
         </Tab.Screen>
@@ -164,7 +185,7 @@ function MainApp({ username }) {
             ),
           }}
         >
-          {() => <PostsScreen />}
+          {() => <PostsScreen isEmailVerified={isEmailVerified} />}
         </Tab.Screen>
 
         <Tab.Screen
@@ -217,7 +238,14 @@ function MainApp({ username }) {
             ),
           }}
         >
-          {() => <ProfileScreen username={username} />}
+          {() => (
+            <ProfileScreen
+              username={username}
+              user={user}
+              isEmailVerified={isEmailVerified}
+              onRefreshUser={onRefreshUser}
+            />
+          )}
         </Tab.Screen>
       </Tab.Navigator>
     </NavigationContainer>
@@ -231,6 +259,9 @@ function AuthScreen() {
   const [age, setAge] = useState('');
   const [signupStep, setSignupStep] = useState('credentials');
   const [screeningAnswers, setScreeningAnswers] = useState({});
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [guidelinesAccepted, setGuidelinesAccepted] = useState(false);
   const [rejection, setRejection] = useState(null);
   const [loading, setLoading] = useState(false);
   const { theme, accentColor } = useTheme();
@@ -238,6 +269,9 @@ function AuthScreen() {
   const resetSignupState = () => {
     setSignupStep('credentials');
     setScreeningAnswers({});
+    setTermsAccepted(false);
+    setPrivacyAccepted(false);
+    setGuidelinesAccepted(false);
     setRejection(null);
   };
 
@@ -265,23 +299,57 @@ function AuthScreen() {
   const createAccount = async () => {
     setLoading(true);
     const ageNum = parseInt(age, 10);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
       options: {
+        emailRedirectTo: AUTH_REDIRECT_URL,
         data: {
           age: ageNum,
           safety_onboarding: {
             completed_at: new Date().toISOString(),
             answers: screeningAnswers,
             agreement: 'listen-first, advice-only-when-asked',
+            legal: {
+              terms_accepted: termsAccepted,
+              privacy_accepted: privacyAccepted,
+              community_guidelines_accepted: guidelinesAccepted,
+              accepted_at: new Date().toISOString(),
+              version: 'public-launch-2026-08-01',
+            },
           },
         },
       },
     });
 
-    if (error) Alert.alert('Error', error.message);
+    if (error) {
+      Alert.alert('Error', error.message);
+    } else {
+      if (data?.session) await supabase.auth.signOut();
+      Alert.alert('verify your email', 'we sent you a verification link. after you verify, log in to join the community.');
+      setIsLogin(true);
+      resetSignupState();
+    }
     setLoading(false);
+  };
+
+  const sendPasswordReset = async () => {
+    if (!email.trim()) {
+      Alert.alert('email needed', 'enter your email first, then tap forgot password again.');
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: AUTH_REDIRECT_URL,
+    });
+    setLoading(false);
+
+    if (error) {
+      Alert.alert('reset failed', error.message);
+    } else {
+      Alert.alert('check your email', 'we sent a password reset link. open it on this phone to choose a new password.');
+    }
   };
 
   const handleAuth = async () => {
@@ -306,6 +374,11 @@ function AuthScreen() {
       return;
     }
 
+    if (!termsAccepted || !privacyAccepted || !guidelinesAccepted) {
+      Alert.alert('agreement needed', 'please agree to the terms, privacy policy, and community guidelines before joining.');
+      return;
+    }
+
     await createAccount();
   };
 
@@ -320,6 +393,7 @@ function AuthScreen() {
 
   const renderScreening = () => {
     const allAnswered = SCREENING_QUESTIONS.every((question) => screeningAnswers[question.id]);
+    const canCreate = allAnswered && termsAccepted && privacyAccepted && guidelinesAccepted;
 
     if (rejection) {
       return (
@@ -382,10 +456,33 @@ function AuthScreen() {
           </View>
         ))}
 
+        <View style={[styles.legalCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Text style={[styles.legalTitle, { color: theme.text }]}>before you join</Text>
+          {LEGAL_SECTIONS.map((section) => (
+            <View key={section.key} style={styles.legalSection}>
+              <Text style={[styles.legalSectionTitle, { color: accentColor }]}>{section.title}</Text>
+              <Text style={[styles.legalBody, { color: theme.subtext }]}>{section.body}</Text>
+            </View>
+          ))}
+
+          {[
+            ['terms', termsAccepted, setTermsAccepted, 'i agree to the terms & conditions'],
+            ['privacy', privacyAccepted, setPrivacyAccepted, 'i agree to the privacy policy'],
+            ['guidelines', guidelinesAccepted, setGuidelinesAccepted, 'i agree to the community guidelines'],
+          ].map(([key, checked, setter, label]) => (
+            <TouchableOpacity key={key} style={styles.checkRow} onPress={() => setter(current => !current)}>
+              <View style={[styles.checkBox, { borderColor: accentColor, backgroundColor: checked ? accentColor : 'transparent' }]}>
+                {checked && <Text style={styles.checkMark}>✓</Text>}
+              </View>
+              <Text style={[styles.checkText, { color: theme.text }]}>{label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: accentColor }, (!allAnswered || loading) && styles.buttonDisabled]}
+          style={[styles.button, { backgroundColor: accentColor }, (!canCreate || loading) && styles.buttonDisabled]}
           onPress={handleAuth}
-          disabled={!allAnswered || loading}
+          disabled={!canCreate || loading}
         >
           <Text style={styles.buttonText}>
             {loading ? 'Please wait...' : 'Create Account'}
@@ -446,6 +543,11 @@ function AuthScreen() {
           {isLogin ? "new here? join spillr" : "already have an account? log in"}
         </Text>
       </TouchableOpacity>
+      {isLogin && (
+        <TouchableOpacity onPress={sendPasswordReset} disabled={loading}>
+          <Text style={[styles.switchText, styles.forgotText, { color: theme.subtext }]}>forgot password?</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -472,21 +574,75 @@ function AppContent() {
   const [checkingUsername, setCheckingUsername] = useState(false);
   const [notifOnboarded, setNotifOnboarded] = useState(null);
   const [showRitual, setShowRitual] = useState(null); // null = checking
+  const [needsPasswordReset, setNeedsPasswordReset] = useState(false);
+
+  const refreshUser = async () => {
+    const { data: { user: latestUser } } = await supabase.auth.getUser();
+    setUser(latestUser ?? null);
+    return latestUser;
+  };
+
+  const handleAuthUrl = async (url) => {
+    const { accessToken, refreshToken, code, type } = parseSupabaseAuthUrl(url);
+
+    if (code) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      if (error) {
+        Alert.alert('link issue', 'this email link expired or could not be opened. try sending a fresh one.');
+        return;
+      }
+
+      setUser(data?.session?.user ?? null);
+      if (type === 'recovery') setNeedsPasswordReset(true);
+      return;
+    }
+
+    if (!accessToken || !refreshToken) return;
+
+    const { data, error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+
+    if (error) {
+      Alert.alert('link issue', 'this email link expired or could not be opened. try sending a fresh one.');
+      return;
+    }
+
+    setUser(data?.session?.user ?? null);
+    if (type === 'recovery') setNeedsPasswordReset(true);
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) checkUsername(session.user.id);
     });
-    supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') setNeedsPasswordReset(true);
       setUser(session?.user ?? null);
       if (session?.user) checkUsername(session.user.id);
       else {
         setUsername(null);
         setNotifOnboarded(null);
         setShowRitual(null);
+        setNeedsPasswordReset(false);
       }
     });
+
+    return () => authListener.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    Linking.getInitialURL().then((url) => {
+      if (url) handleAuthUrl(url);
+    });
+
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      handleAuthUrl(url);
+    });
+
+    return () => subscription.remove();
   }, []);
 
   useEffect(() => {
@@ -526,19 +682,72 @@ function AppContent() {
   };
 
   if (!user) return <AuthScreen />;
+  if (needsPasswordReset) return <ResetPasswordScreen onDone={() => setNeedsPasswordReset(false)} />;
   if (checkingUsername) return null;
   if (!username) return <UsernameScreen onDone={(name) => setUsername(name)} />;
   if (notifOnboarded === null) return null;
   if (!notifOnboarded) return <NotificationOnboardingScreen onDone={finishNotifOnboarding} />;
   if (showRitual === null) return null;
   if (showRitual) return <WelcomeRitual onDone={() => setShowRitual(false)} />;
-  return <MainApp username={username} />;
+  return (
+    <MainApp
+      username={username}
+      user={user}
+      isEmailVerified={Boolean(user?.email_confirmed_at || user?.confirmed_at)}
+      onRefreshUser={refreshUser}
+    />
+  );
+}
+
+function ResetPasswordScreen({ onDone }) {
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { theme, accentColor } = useTheme();
+
+  const updatePassword = async () => {
+    if (password.length < 6) {
+      Alert.alert('too short', 'please use at least 6 characters.');
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase.auth.updateUser({ password });
+    setLoading(false);
+
+    if (error) {
+      Alert.alert('could not reset', error.message);
+    } else {
+      Alert.alert('password updated', 'you can keep using spillr now.');
+      onDone();
+    }
+  };
+
+  return (
+    <SafeAreaView style={[styles.container, styles.resetScreen, { backgroundColor: theme.bg }]}>
+      <View style={[styles.resetCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <Text style={[styles.title, { color: theme.text }]}>new password</Text>
+        <Text style={[styles.resetCopy, { color: theme.subtext }]}>choose something only you know.</Text>
+        <TextInput
+          style={[styles.input, { backgroundColor: theme.input, borderColor: theme.border, color: theme.text }]}
+          placeholder="new password"
+          placeholderTextColor={theme.subtext}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        <TouchableOpacity style={[styles.button, { backgroundColor: accentColor }, loading && styles.buttonDisabled]} onPress={updatePassword} disabled={loading}>
+          <Text style={styles.buttonText}>{loading ? 'saving...' : 'save password'}</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
 }
 
 export default function App() {
   return (
     <ThemeProvider>
       <AppContent />
+      <SpillrAlertHost />
     </ThemeProvider>
   );
 }
@@ -565,6 +774,7 @@ const styles = StyleSheet.create({
   buttonDisabled: { opacity: 0.7 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   switchText: { textAlign: 'center', marginTop: 20, fontSize: 14 },
+  forgotText: { marginTop: 12, fontWeight: '700' },
   screeningScroll: { flex: 1 },
   screeningContent: { paddingHorizontal: 22, paddingTop: 24, paddingBottom: 40 },
   rejectionScreen: { flex: 1, justifyContent: 'center', paddingHorizontal: 30 },
@@ -573,6 +783,15 @@ const styles = StyleSheet.create({
   questionTitle: { fontSize: 15, fontWeight: '700', lineHeight: 21, marginBottom: 12 },
   optionButton: { borderRadius: 12, borderWidth: 1, padding: 13, marginBottom: 8 },
   optionText: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
+  legalCard: { borderRadius: 16, borderWidth: 1, padding: 16, marginTop: 4, marginBottom: 14 },
+  legalTitle: { fontSize: 16, fontWeight: '900', marginBottom: 10 },
+  legalSection: { marginBottom: 12 },
+  legalSectionTitle: { fontSize: 13, fontWeight: '900', marginBottom: 4 },
+  legalBody: { fontSize: 12, lineHeight: 18, fontWeight: '600' },
+  checkRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 9 },
+  checkBox: { width: 22, height: 22, borderRadius: 8, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  checkMark: { color: '#fff', fontSize: 14, fontWeight: '900' },
+  checkText: { flex: 1, fontSize: 13, lineHeight: 18, fontWeight: '700' },
   rejectionBox: { borderRadius: 14, borderWidth: 1, padding: 14, marginBottom: 12 },
   rejectionTitle: { color: '#dc2626', fontSize: 14, fontWeight: '800', marginBottom: 6 },
   rejectionText: { color: '#dc2626', fontSize: 13, lineHeight: 19 },
@@ -584,4 +803,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: -14,
   },
+  resetScreen: { justifyContent: 'center', padding: 24 },
+  resetCard: { borderRadius: 28, borderWidth: 1, padding: 22 },
+  resetCopy: { fontSize: 14, lineHeight: 20, marginTop: -18, marginBottom: 18 },
 });

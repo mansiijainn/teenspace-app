@@ -3,7 +3,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { useState, useRef, useMemo } from 'react';
+import { Audio } from 'expo-av';
+import { useEffect, useState, useRef, useMemo } from 'react';
 
 const { width } = Dimensions.get('window');
 const COLS    = 6;
@@ -12,7 +13,7 @@ const GAP     = 8;
 const SIZE    = (width - PADDING * 2 - GAP * (COLS - 1)) / COLS;
 const ROWS_PER_SHEET = 12;
 
-function Bubble({ onPop }) {
+function Bubble({ onPop, onPopStart }) {
   const [popped, setPopped] = useState(false);
   const scale  = useRef(new Animated.Value(1)).current;
 
@@ -20,6 +21,7 @@ function Bubble({ onPop }) {
     if (popped) return;
     setPopped(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onPopStart?.();
     Animated.sequence([
       Animated.timing(scale, { toValue: 1.3, duration: 80, useNativeDriver: true }),
       Animated.timing(scale, { toValue: 0,   duration: 120, useNativeDriver: true }),
@@ -38,6 +40,7 @@ function Bubble({ onPop }) {
 export default function BubblesGame({ onClose, gradient = ['#ff9670', '#ff4e7a'] }) {
   const [sheet, setSheet] = useState(0);
   const [popped, setPopped] = useState(0);
+  const popSoundRef = useRef(null);
 
   // Generate keys for each bubble; sheet changes → new keys → new bubbles
   const bubbles = useMemo(
@@ -58,6 +61,42 @@ export default function BubblesGame({ onClose, gradient = ['#ff9670', '#ff4e7a']
       return next;
     });
   };
+
+  const playPopSound = () => {
+    const sound = popSoundRef.current;
+    if (!sound) return;
+    sound.replayAsync().catch(() => {});
+  };
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadSound = async () => {
+      try {
+        await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
+        const { sound } = await Audio.Sound.createAsync(
+          require('../../assets/sounds/bubble-pop.wav'),
+          { shouldPlay: false, volume: 0.55 }
+        );
+
+        if (mounted) {
+          popSoundRef.current = sound;
+        } else {
+          await sound.unloadAsync();
+        }
+      } catch {
+        popSoundRef.current = null;
+      }
+    };
+
+    loadSound();
+
+    return () => {
+      mounted = false;
+      popSoundRef.current?.unloadAsync();
+      popSoundRef.current = null;
+    };
+  }, []);
 
   const newSheet = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -84,7 +123,7 @@ export default function BubblesGame({ onClose, gradient = ['#ff9670', '#ff4e7a']
 
       <View style={styles.grid}>
         {bubbles.map(key => (
-          <Bubble key={key} onPop={onPop} />
+          <Bubble key={key} onPop={onPop} onPopStart={playPopSound} />
         ))}
       </View>
     </SafeAreaView>

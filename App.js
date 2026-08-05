@@ -118,6 +118,7 @@ function MainApp({ username, user, isEmailVerified, onRefreshUser }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [aiName, setAiName] = useState('luna');
   const [spacesOpen, setSpacesOpen] = useState(false);
+  const [gameOpen, setGameOpen] = useState(false);
   const { theme, accentColor } = useTheme();
   const iconBg = theme.card;
   const tabBarStyle = {
@@ -161,7 +162,7 @@ function MainApp({ username, user, isEmailVerified, onRefreshUser }) {
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
-          tabBarStyle: spacesOpen ? { display: 'none' } : tabBarStyle,
+          tabBarStyle: spacesOpen || gameOpen ? { display: 'none' } : tabBarStyle,
           tabBarActiveTintColor: accentColor,
           tabBarInactiveTintColor: theme.subtext,
           tabBarLabelStyle: {
@@ -240,7 +241,7 @@ function MainApp({ username, user, isEmailVerified, onRefreshUser }) {
             ),
           }}
         >
-          {() => <VibesScreen />}
+          {() => <VibesScreen onGameOpenChange={setGameOpen} />}
         </Tab.Screen>
 
         <Tab.Screen

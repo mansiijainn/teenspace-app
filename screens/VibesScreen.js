@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 
 import BreatheGame from './games/BreatheGame';
@@ -93,7 +93,7 @@ const MOOD_FILTERS = [
   { key: 'lift',      label: 'lift mood' },
 ];
 
-export default function VibesScreen() {
+export default function VibesScreen({ onGameOpenChange }) {
   const [activeGame, setActiveGame]   = useState(null);
   const [moodFilter, setMoodFilter]   = useState(null);
   const { theme, accentColor }        = useTheme();
@@ -104,6 +104,14 @@ export default function VibesScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setActiveGame(game);
   };
+
+  useEffect(() => {
+    onGameOpenChange?.(Boolean(activeGame));
+
+    return () => {
+      onGameOpenChange?.(false);
+    };
+  }, [activeGame, onGameOpenChange]);
 
   // If a game is open, render it full-screen
   if (activeGame) {

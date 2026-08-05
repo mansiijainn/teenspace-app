@@ -39,9 +39,13 @@ export default function MemoryGame({ onClose, gradient = ['#ffb547', '#ff7a3c'] 
   const [moves, setMoves]       = useState(0);
   const [done, setDone]         = useState(false);
   const lockRef = useRef(false);
+  const flippedRef = useRef([]);
+  const matchedRef = useRef([]);
 
   const restart = () => {
     setDeck(buildDeck());
+    flippedRef.current = [];
+    matchedRef.current = [];
     setFlipped([]);
     setMatched([]);
     setMoves(0);
@@ -50,12 +54,16 @@ export default function MemoryGame({ onClose, gradient = ['#ffb547', '#ff7a3c'] 
   };
 
   const handleFlip = (card) => {
-    if (lockRef.current) return;
-    if (flipped.includes(card.id)) return;
-    if (matched.includes(card.pairId)) return;
+    const currentFlipped = flippedRef.current;
+    const currentMatched = matchedRef.current;
+
+    if (lockRef.current || currentFlipped.length >= 2) return;
+    if (currentFlipped.includes(card.id)) return;
+    if (currentMatched.includes(card.pairId)) return;
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const newFlipped = [...flipped, card.id];
+    const newFlipped = [...currentFlipped, card.id];
+    flippedRef.current = newFlipped;
     setFlipped(newFlipped);
 
     if (newFlipped.length === 2) {
@@ -65,23 +73,33 @@ export default function MemoryGame({ onClose, gradient = ['#ffb547', '#ff7a3c'] 
       const a = deck.find(c => c.id === aId);
       const b = deck.find(c => c.id === bId);
 
+      if (!a || !b) {
+        flippedRef.current = [];
+        setFlipped([]);
+        lockRef.current = false;
+        return;
+      }
+
       if (a.pairId === b.pairId) {
         // match
         setTimeout(() => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           setMatched(m => {
-            const next = [...m, a.pairId];
+            const next = m.includes(a.pairId) ? m : [...m, a.pairId];
+            matchedRef.current = next;
             if (next.length === ICONS.length) {
               setDone(true);
             }
             return next;
           });
+          flippedRef.current = [];
           setFlipped([]);
           lockRef.current = false;
         }, 400);
       } else {
         // no match
         setTimeout(() => {
+          flippedRef.current = [];
           setFlipped([]);
           lockRef.current = false;
         }, 800);
@@ -143,6 +161,7 @@ export default function MemoryGame({ onClose, gradient = ['#ffb547', '#ff7a3c'] 
             <Pressable
               key={card.id}
               onPress={() => handleFlip(card)}
+              disabled={lockRef.current || isOpen}
               style={[
                 styles.card,
                 {

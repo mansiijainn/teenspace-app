@@ -173,6 +173,9 @@ function MainApp({ username, user, isEmailVerified, onRefreshUser }) {
       >
         <Tab.Screen
           name="Home"
+          listeners={{
+            blur: () => setSpacesOpen(false),
+          }}
           options={{
             tabBarLabel: 'spaces',
             tabBarIcon: ({ color, focused }) => (
@@ -234,6 +237,9 @@ function MainApp({ username, user, isEmailVerified, onRefreshUser }) {
 
         <Tab.Screen
           name="Vibes"
+          listeners={{
+            blur: () => setGameOpen(false),
+          }}
           options={{
             tabBarLabel: 'vibes',
             tabBarIcon: ({ color, focused }) => (

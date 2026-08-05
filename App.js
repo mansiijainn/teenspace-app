@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NotificationOnboardingScreen from './screens/NotificationOnboardingScreen';
 import VibesScreen from './screens/VibesScreen';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ScrollView, Linking } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ScrollView, Linking, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -570,8 +570,8 @@ function AuthScreen() {
       <StatusBar style={theme.bg === '#fff8f1' ? 'dark' : 'light'} />
       {signupStep === 'credentials' && (
         <View style={styles.header}>
-          <View style={[styles.logoMark, { backgroundColor: theme.panel }]}>
-            <Text style={styles.logoCup}>☕</Text>
+          <View style={styles.logoMark}>
+            <Image source={require('./assets/spillr-logo.png')} style={styles.logoImage} />
           </View>
           <Text style={[styles.logo, { color: theme.text }]}>spillr</Text>
           <Text style={[styles.tagline, { color: theme.subtext }]}>spill it. no judgement.</Text>
@@ -770,15 +770,16 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   logoMark: {
-    width: 82,
-    height: 82,
-    borderRadius: 28,
+    width: 96,
+    height: 96,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
     transform: [{ rotate: '-5deg' }],
+    overflow: 'hidden',
   },
-  logoCup: { fontSize: 36 },
+  logoImage: { width: '100%', height: '100%' },
   logo: { fontSize: 42, fontWeight: '900' },
   tagline: { fontSize: 14, marginTop: 8 },
   form: { flex: 2, paddingHorizontal: 30 },

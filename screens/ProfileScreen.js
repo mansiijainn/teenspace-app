@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../supabase';
-import { useTheme, accents } from '../context/ThemeContext';
+import { useTheme } from '../context/ThemeContext';
 import { AUTH_REDIRECT_URL } from '../utils/authLinks';
 
 const SUPPORT_EMAIL = 'spillr.support@gmail.com';
@@ -64,9 +64,8 @@ function isValidUsername(value) {
 }
 
 export default function ProfileScreen({ username, user, isEmailVerified, onRefreshUser }) {
-  const { mode, setMode, accent, setAccent, customColor, setCustomColor, theme, accentColor, gradient } = useTheme();
+  const { mode, setMode, theme, accentColor, gradient } = useTheme();
   const [displayUsername, setDisplayUsername] = useState(username || '');
-  const [showPalette, setShowPalette] = useState(false);
   const [docKey, setDocKey] = useState(null);
   const [editingProfile, setEditingProfile] = useState(false);
   const [draftUsername, setDraftUsername] = useState(username || '');
@@ -259,34 +258,6 @@ export default function ProfileScreen({ username, user, isEmailVerified, onRefre
               </TouchableOpacity>
             ))}
           </View>
-
-          <Text style={[styles.cardLabel, { color: theme.text, marginTop: 18 }]}>accent color</Text>
-          <View style={styles.colorRow}>
-            {Object.entries(accents).map(([name, color]) => (
-              <TouchableOpacity
-                key={name}
-                style={[styles.colorDot, {
-                  backgroundColor: color,
-                  borderWidth: accent === name ? 3 : 0,
-                  borderColor: theme.text,
-                  transform: [{ scale: accent === name ? 1.16 : 1 }],
-                }]}
-                onPress={() => setAccent(name)}
-              />
-            ))}
-            <TouchableOpacity
-              style={[styles.colorDot, {
-                backgroundColor: customColor || '#333',
-                borderWidth: accent === 'custom' ? 3 : 0,
-                borderColor: theme.text,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }]}
-              onPress={() => setShowPalette(true)}
-            >
-              <Ionicons name="color-palette-outline" size={17} color="#fff" />
-            </TouchableOpacity>
-          </View>
         </Section>
 
         <Section title="safety & privacy" theme={theme}>
@@ -305,40 +276,6 @@ export default function ProfileScreen({ username, user, isEmailVerified, onRefre
           <Text style={styles.logoutText}>log out</Text>
         </TouchableOpacity>
       </ScrollView>
-
-      <Modal visible={showPalette} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
-            <Text style={[styles.cardLabel, { color: theme.text, marginBottom: 16 }]}>pick any color</Text>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {[
-                ['#ef4444','#f97316','#f59e0b','#eab308','#84cc16','#22c55e','#10b981','#14b8a6'],
-                ['#06b6d4','#3b82f6','#6366f1','#8b5cf6','#a855f7','#d946ef','#ec4899','#f43f5e'],
-                ['#fca5a5','#fdba74','#fcd34d','#fde68a','#bbf7d0','#99f6e4','#bae6fd','#c7d2fe'],
-                ['#7f1d1d','#7c2d12','#78350f','#713f12','#14532d','#134e4a','#0c4a6e','#1e1b4b'],
-                ['#ffffff','#d1d5db','#9ca3af','#6b7280','#4b5563','#374151','#1f2937','#000000'],
-              ].map((row, rowIndex) => (
-                <View key={rowIndex} style={styles.paletteRow}>
-                  {row.map((color) => (
-                    <TouchableOpacity
-                      key={color}
-                      style={[styles.paletteDot, { backgroundColor: color }]}
-                      onPress={() => {
-                        setCustomColor(color);
-                        setAccent('custom');
-                        setShowPalette(false);
-                      }}
-                    />
-                  ))}
-                </View>
-              ))}
-            </ScrollView>
-            <TouchableOpacity style={[styles.closeBtn, { backgroundColor: accentColor }]} onPress={() => setShowPalette(false)}>
-              <Text style={styles.closeText}>close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
       <Modal visible={Boolean(currentDoc)} transparent animationType="fade" onRequestClose={() => setDocKey(null)}>
         <View style={styles.modalOverlay}>
@@ -496,16 +433,9 @@ const styles = StyleSheet.create({
   toggleRow: { flexDirection: 'row', gap: 8 },
   toggleBtn: { flex: 1, borderRadius: 16, paddingVertical: 12, alignItems: 'center', borderWidth: 1 },
   toggleText: { fontSize: 13, fontWeight: '900' },
-  colorRow: { flexDirection: 'row', gap: 12, alignItems: 'center', flexWrap: 'wrap' },
-  colorDot: { width: 34, height: 34, borderRadius: 17 },
   logoutBtn: { borderRadius: 20, padding: 17, alignItems: 'center', borderWidth: 1.5, marginTop: 4 },
   logoutText: { color: '#dc2626', fontSize: 15, fontWeight: '900' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(24,21,29,0.42)', justifyContent: 'flex-end', padding: 16 },
-  modalContent: { borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 22, maxHeight: '72%' },
-  paletteRow: { flexDirection: 'row', gap: 10, marginBottom: 10, justifyContent: 'center' },
-  paletteDot: { width: 36, height: 36, borderRadius: 18 },
-  closeBtn: { borderRadius: 18, padding: 14, alignItems: 'center', marginTop: 16 },
-  closeText: { color: '#fff', fontWeight: '900' },
   docSheet: { borderRadius: 30, borderWidth: 1, padding: 18, maxHeight: '78%' },
   docHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   docTitle: { fontSize: 24, lineHeight: 30, fontWeight: '900', marginBottom: 12 },

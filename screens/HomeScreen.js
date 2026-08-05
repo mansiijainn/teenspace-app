@@ -25,7 +25,6 @@ const MOODS = [
   { key: 'soft', label: 'soft', face: '♡', color: moodColors.soft },
 ];
 
-const DAILY_GREETINGS = ['hello, you', 'hey, you', 'soft check-in', 'hi, spillr'];
 export default function HomeScreen({ onOpenChat, aiName = 'luna', onAiNameChange, onSpacesOpenChange, isEmailVerified = false }) {
   const [activeChannel, setActiveChannel] = useState(null);
   const [editingName, setEditingName] = useState(false);
@@ -38,11 +37,6 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna', onAiNameChange
   const [moodHistoryOpen, setMoodHistoryOpen] = useState(false);
   const { theme, accentColor, gradient } = useTheme();
 
-  const hour = new Date().getHours();
-  const dayIndex = new Date().getDate();
-  const greeting = hour >= 0 && hour < 5
-    ? 'rough night?'
-    : DAILY_GREETINGS[dayIndex % DAILY_GREETINGS.length];
   const visibleOpenNote = openNote?.kind === 'streak' ? null : openNote;
 
   useEffect(() => {
@@ -117,9 +111,24 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna', onAiNameChange
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.greetingBlock}>
-          <Text style={[styles.title, { color: theme.text }]}>{greeting}</Text>
-        </View>
+        {visibleOpenNote && (
+          <View style={[
+            styles.noteCard,
+            visibleOpenNote.kind === 'late-night' && styles.noteCardCompact,
+            { backgroundColor: visibleOpenNote.kind === 'late-night' ? accentColor + '18' : theme.card, borderColor: visibleOpenNote.kind === 'late-night' ? accentColor + '40' : theme.border },
+          ]}>
+            <View style={[styles.noteIcon, visibleOpenNote.kind === 'late-night' && styles.noteIconCompact, { backgroundColor: accentColor + '28' }]}>
+              <Ionicons name={visibleOpenNote.kind === 'late-night' ? 'moon' : 'sparkles'} size={visibleOpenNote.kind === 'late-night' ? 15 : 18} color={accentColor} />
+            </View>
+            <View style={styles.noteCopy}>
+              <Text style={[styles.noteTitle, visibleOpenNote.kind === 'late-night' && styles.noteTitleCompact, { color: theme.text }]}>{visibleOpenNote.title}</Text>
+              <Text style={[styles.noteBody, visibleOpenNote.kind === 'late-night' && styles.noteBodyCompact, { color: theme.subtext }]}>{visibleOpenNote.body}</Text>
+              {visibleOpenNote.streakNote && visibleOpenNote.kind !== 'late-night' && (
+                <Text style={[styles.noteTiny, { color: accentColor }]}>{visibleOpenNote.streakNote}</Text>
+              )}
+            </View>
+          </View>
+        )}
 
         <Pressable onPress={editingName ? undefined : handleAI} style={({ pressed }) => [pressed && !editingName && { transform: [{ scale: 0.98 }] }]}>
           <View style={[styles.lunaCard, { backgroundColor: theme.text }]}>
@@ -156,6 +165,31 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna', onAiNameChange
           </View>
         </Pressable>
 
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>spaces based on your needs</Text>
+        <View style={styles.spaceGrid}>
+          {channels.map((channel, index) => (
+            <Pressable
+              key={channel.id}
+              onPress={() => handleChannel(channel)}
+              style={({ pressed }) => [
+                styles.spaceCard,
+                {
+                  backgroundColor: channel.color,
+                  transform: [{ translateY: index % 2 ? 12 : 0 }],
+                },
+                pressed && { transform: [{ scale: 0.97 }] },
+              ]}
+            >
+              <Ionicons name={channel.icon} size={22} color="#18151d" />
+              <Text style={styles.spaceName}>{channel.name}</Text>
+              <Text style={styles.spaceDesc}>{channel.desc}</Text>
+              <View style={styles.spaceArrow}>
+                <Ionicons name="arrow-forward" size={15} color="#18151d" />
+              </View>
+            </Pressable>
+          ))}
+        </View>
+
         <View style={[styles.moodPanel, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <View style={styles.panelHeader}>
             <Text style={[styles.panelTitle, { color: theme.text }]}>daily mood log</Text>
@@ -183,50 +217,6 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna', onAiNameChange
             ))}
           </View>
           {!!moodNote && <Text style={[styles.moodNote, { color: accentColor }]}>{moodNote}</Text>}
-        </View>
-
-        {visibleOpenNote && (
-          <View style={[
-            styles.noteCard,
-            visibleOpenNote.kind === 'late-night' && styles.noteCardCompact,
-            { backgroundColor: visibleOpenNote.kind === 'late-night' ? accentColor + '18' : theme.card, borderColor: visibleOpenNote.kind === 'late-night' ? accentColor + '40' : theme.border },
-          ]}>
-            <View style={[styles.noteIcon, visibleOpenNote.kind === 'late-night' && styles.noteIconCompact, { backgroundColor: accentColor + '28' }]}>
-              <Ionicons name={visibleOpenNote.kind === 'late-night' ? 'moon' : 'sparkles'} size={visibleOpenNote.kind === 'late-night' ? 15 : 18} color={accentColor} />
-            </View>
-            <View style={styles.noteCopy}>
-              <Text style={[styles.noteTitle, visibleOpenNote.kind === 'late-night' && styles.noteTitleCompact, { color: theme.text }]}>{visibleOpenNote.title}</Text>
-              <Text style={[styles.noteBody, visibleOpenNote.kind === 'late-night' && styles.noteBodyCompact, { color: theme.subtext }]}>{visibleOpenNote.body}</Text>
-              {visibleOpenNote.streakNote && visibleOpenNote.kind !== 'late-night' && (
-                <Text style={[styles.noteTiny, { color: accentColor }]}>{visibleOpenNote.streakNote}</Text>
-              )}
-            </View>
-          </View>
-        )}
-
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>spaces based on your needs</Text>
-        <View style={styles.spaceGrid}>
-          {channels.map((channel, index) => (
-            <Pressable
-              key={channel.id}
-              onPress={() => handleChannel(channel)}
-              style={({ pressed }) => [
-                styles.spaceCard,
-                {
-                  backgroundColor: channel.color,
-                  transform: [{ translateY: index % 2 ? 12 : 0 }],
-                },
-                pressed && { transform: [{ scale: 0.97 }] },
-              ]}
-            >
-              <Ionicons name={channel.icon} size={22} color="#18151d" />
-              <Text style={styles.spaceName}>{channel.name}</Text>
-              <Text style={styles.spaceDesc}>{channel.desc}</Text>
-              <View style={styles.spaceArrow}>
-                <Ionicons name="arrow-forward" size={15} color="#18151d" />
-              </View>
-            </Pressable>
-          ))}
         </View>
       </ScrollView>
 
@@ -290,8 +280,6 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna', onAiNameChange
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 118 },
-  greetingBlock: { marginBottom: 18 },
-  title: { fontSize: 34, fontWeight: '800', lineHeight: 40 },
   noteCard: { borderRadius: 26, borderWidth: 1, padding: 14, flexDirection: 'row', gap: 12, marginBottom: 16 },
   noteCardCompact: { borderRadius: 22, padding: 11, marginTop: -4 },
   noteIcon: { width: 42, height: 42, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
@@ -319,7 +307,7 @@ const styles = StyleSheet.create({
   lunaSub: { fontSize: 13, fontWeight: '700', opacity: 0.76, marginTop: 3 },
   aiNameInput: { fontSize: 24, fontWeight: '900', borderBottomWidth: 1, paddingVertical: 0, minWidth: 80 },
   sectionTitle: { fontSize: 24, fontWeight: '900', lineHeight: 30, marginBottom: 14 },
-  spaceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  spaceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 28 },
   spaceCard: { width: '48%', minHeight: 148, borderRadius: 28, padding: 16, justifyContent: 'space-between' },
   spaceName: { color: '#18151d', fontSize: 18, fontWeight: '900', marginTop: 14 },
   spaceDesc: { color: 'rgba(24,21,29,0.68)', fontSize: 12, fontWeight: '700', marginTop: 4 },

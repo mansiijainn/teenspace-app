@@ -40,7 +40,8 @@ function Bubble({ onPop, onPopStart }) {
 export default function BubblesGame({ onClose, gradient = ['#ff9670', '#ff4e7a'] }) {
   const [sheet, setSheet] = useState(0);
   const [popped, setPopped] = useState(0);
-  const popSoundRef = useRef(null);
+  const popSoundsRef = useRef([]);
+  const soundIndexRef = useRef(0);
 
   // Generate keys for each bubble; sheet changes → new keys → new bubbles
   const bubbles = useMemo(
@@ -63,9 +64,14 @@ export default function BubblesGame({ onClose, gradient = ['#ff9670', '#ff4e7a']
   };
 
   const playPopSound = () => {
-    const sound = popSoundRef.current;
+    const sounds = popSoundsRef.current;
+    if (!sounds.length) return;
+    const sound = sounds[soundIndexRef.current % sounds.length];
+    soundIndexRef.current += 1;
     if (!sound) return;
-    sound.replayAsync().catch(() => {});
+    sound.setPositionAsync(0)
+      .then(() => sound.playAsync())
+      .catch(() => {});
   };
 
   useEffect(() => {
@@ -73,19 +79,29 @@ export default function BubblesGame({ onClose, gradient = ['#ff9670', '#ff4e7a']
 
     const loadSound = async () => {
       try {
-        await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
-        const { sound } = await Audio.Sound.createAsync(
-          require('../../assets/sounds/bubble-pop.wav'),
-          { shouldPlay: false, volume: 0.55 }
+        await Audio.setAudioModeAsync({
+          playsInSilentModeIOS: true,
+          allowsRecordingIOS: false,
+          staysActiveInBackground: false,
+        });
+
+        const loadedSounds = await Promise.all(
+          Array.from({ length: 4 }).map(async () => {
+            const { sound } = await Audio.Sound.createAsync(
+              require('../../assets/sounds/bubble-pop.wav'),
+              { shouldPlay: false, volume: 0.85 }
+            );
+            return sound;
+          })
         );
 
         if (mounted) {
-          popSoundRef.current = sound;
+          popSoundsRef.current = loadedSounds;
         } else {
-          await sound.unloadAsync();
+          await Promise.all(loadedSounds.map((sound) => sound.unloadAsync()));
         }
       } catch {
-        popSoundRef.current = null;
+        popSoundsRef.current = [];
       }
     };
 
@@ -93,8 +109,8 @@ export default function BubblesGame({ onClose, gradient = ['#ff9670', '#ff4e7a']
 
     return () => {
       mounted = false;
-      popSoundRef.current?.unloadAsync();
-      popSoundRef.current = null;
+      popSoundsRef.current.forEach((sound) => sound.unloadAsync());
+      popSoundsRef.current = [];
     };
   }, []);
 

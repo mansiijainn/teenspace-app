@@ -26,8 +26,6 @@ const MOODS = [
 ];
 
 const DAILY_GREETINGS = ['hello, you', 'hey, you', 'soft check-in', 'hi, spillr'];
-const LIVE_LABELS = ['awake', 'listening', 'soft mode', 'no judgement', 'here'];
-
 export default function HomeScreen({ onOpenChat, aiName = 'luna', onAiNameChange, onSpacesOpenChange, isEmailVerified = false }) {
   const [activeChannel, setActiveChannel] = useState(null);
   const [editingName, setEditingName] = useState(false);
@@ -45,7 +43,6 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna', onAiNameChange
   const greeting = hour >= 0 && hour < 5
     ? 'rough night?'
     : DAILY_GREETINGS[dayIndex % DAILY_GREETINGS.length];
-  const liveLabel = LIVE_LABELS[dayIndex % LIVE_LABELS.length];
   const visibleOpenNote = openNote?.kind === 'streak' ? null : openNote;
 
   useEffect(() => {
@@ -120,15 +117,8 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna', onAiNameChange
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.topRow}>
-          <View>
-            <Text style={[styles.kicker, { color: theme.subtext }]}>daily reflection</Text>
-            <Text style={[styles.title, { color: theme.text }]}>{greeting}</Text>
-          </View>
-          <View style={[styles.liveBadge, { backgroundColor: theme.card, borderColor: theme.border }]}>
-            <View style={[styles.liveDot, { backgroundColor: accentColor }]} />
-            <Text style={[styles.liveText, { color: theme.subtext }]}>{liveLabel}</Text>
-          </View>
+        <View style={styles.greetingBlock}>
+          <Text style={[styles.title, { color: theme.text }]}>{greeting}</Text>
         </View>
 
         <Pressable onPress={editingName ? undefined : handleAI} style={({ pressed }) => [pressed && !editingName && { transform: [{ scale: 0.98 }] }]}>
@@ -300,12 +290,8 @@ export default function HomeScreen({ onOpenChat, aiName = 'luna', onAiNameChange
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 118 },
-  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 },
-  kicker: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
+  greetingBlock: { marginBottom: 18 },
   title: { fontSize: 34, fontWeight: '800', lineHeight: 40 },
-  liveBadge: { flexDirection: 'row', alignItems: 'center', gap: 7, borderRadius: 22, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 8 },
-  liveDot: { width: 7, height: 7, borderRadius: 4 },
-  liveText: { fontSize: 12, fontWeight: '700' },
   noteCard: { borderRadius: 26, borderWidth: 1, padding: 14, flexDirection: 'row', gap: 12, marginBottom: 16 },
   noteCardCompact: { borderRadius: 22, padding: 11, marginTop: -4 },
   noteIcon: { width: 42, height: 42, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },

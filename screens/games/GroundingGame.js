@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, Pressable, TextInput, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Pressable, TextInput, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -84,63 +84,76 @@ export default function GroundingGame({ onClose, gradient = ['#c47aff', '#8a5cff
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <LinearGradient colors={gradient} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
 
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-          <Ionicons name="close" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.stepText}>{stepIdx + 1} / {STEPS.length}</Text>
-        <View style={{ width: 40 }} />
-      </View>
-
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
-        <View style={styles.content}>
-          <View style={styles.iconCircle}>
-            <Ionicons name={step.icon} size={32} color="#fff" />
-          </View>
-          <Text style={styles.bigNumber}>{step.count}</Text>
-          <Text style={styles.senseLabel}>things you can {step.sense}</Text>
-          <Text style={styles.prompt}>{step.prompt}</Text>
-
-          <View style={styles.inputsWrap}>
-            {Array.from({ length: step.count }).map((_, i) => (
-              <View key={`${stepIdx}-${i}`} style={styles.inputRow}>
-                <Text style={styles.inputNum}>{i + 1}</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="type here"
-                  placeholderTextColor="rgba(255,255,255,0.5)"
-                  value={answers[stepIdx][i]}
-                  onChangeText={(t) => updateAnswer(i, t)}
-                  maxLength={50}
-                />
-              </View>
-            ))}
-          </View>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 12 : 0}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+            <Ionicons name="close" size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.stepText}>{stepIdx + 1} / {STEPS.length}</Text>
+          <View style={{ width: 40 }} />
         </View>
-      </ScrollView>
 
-      <View style={styles.bottom}>
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          {stepIdx > 0 && (
-            <Pressable onPress={back} style={({ pressed }) => [styles.actionBtn, styles.actionBtnGhost, { flex: 0.4 }, pressed && { transform: [{ scale: 0.97 }] }]}>
-              <Text style={[styles.actionText, { color: '#fff' }]}>back</Text>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          contentContainerStyle={styles.groundingScroll}
+        >
+          <View style={styles.content}>
+            <View style={styles.iconCircle}>
+              <Ionicons name={step.icon} size={32} color="#fff" />
+            </View>
+            <Text style={styles.bigNumber}>{step.count}</Text>
+            <Text style={styles.senseLabel}>things you can {step.sense}</Text>
+            <Text style={styles.prompt}>{step.prompt}</Text>
+
+            <View style={styles.inputsWrap}>
+              {Array.from({ length: step.count }).map((_, i) => (
+                <View key={`${stepIdx}-${i}`} style={styles.inputRow}>
+                  <Text style={styles.inputNum}>{i + 1}</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="type here"
+                    placeholderTextColor="rgba(255,255,255,0.5)"
+                    value={answers[stepIdx][i]}
+                    onChangeText={(t) => updateAnswer(i, t)}
+                    maxLength={50}
+                    returnKeyType="done"
+                  />
+                </View>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
+
+        <View style={styles.bottom}>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            {stepIdx > 0 && (
+              <Pressable onPress={back} style={({ pressed }) => [styles.actionBtn, styles.actionBtnGhost, { flex: 0.4 }, pressed && { transform: [{ scale: 0.97 }] }]}>
+                <Text style={[styles.actionText, { color: '#fff' }]}>back</Text>
+              </Pressable>
+            )}
+            <Pressable
+              onPress={next}
+              disabled={!canProceed}
+              style={({ pressed }) => [styles.actionBtn, { flex: 1, opacity: canProceed ? 1 : 0.5 }, pressed && canProceed && { transform: [{ scale: 0.97 }] }]}
+            >
+              <Text style={styles.actionText}>{stepIdx === STEPS.length - 1 ? 'finish' : 'next'}</Text>
             </Pressable>
-          )}
-          <Pressable
-            onPress={next}
-            disabled={!canProceed}
-            style={({ pressed }) => [styles.actionBtn, { flex: 1, opacity: canProceed ? 1 : 0.5 }, pressed && canProceed && { transform: [{ scale: 0.97 }] }]}
-          >
-            <Text style={styles.actionText}>{stepIdx === STEPS.length - 1 ? 'finish' : 'next'}</Text>
-          </Pressable>
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container:    { flex: 1 },
+  keyboardView: { flex: 1 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -151,7 +164,8 @@ const styles = StyleSheet.create({
   closeBtn:     { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
   stepText:     { color: '#fff', fontSize: 14, fontWeight: '700', letterSpacing: 1 },
 
-  content:      { paddingHorizontal: 24, paddingTop: 30, alignItems: 'center' },
+  groundingScroll: { flexGrow: 1, paddingBottom: 18 },
+  content:      { paddingHorizontal: 24, paddingTop: 24, alignItems: 'center' },
   iconCircle:   { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
   bigNumber:    { color: '#fff', fontSize: 80, fontWeight: '900', letterSpacing: -3, lineHeight: 85 },
   senseLabel:   { color: '#fff', fontSize: 22, fontWeight: '700', letterSpacing: -0.3, marginTop: 4 },
@@ -169,7 +183,7 @@ const styles = StyleSheet.create({
   inputNum:     { color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: '700', width: 20 },
   input:        { flex: 1, color: '#fff', fontSize: 15, paddingVertical: 12 },
 
-  bottom:       { paddingHorizontal: 20, paddingBottom: 20 },
+  bottom:       { paddingHorizontal: 20, paddingBottom: 20, paddingTop: 8 },
   actionBtn: {
     backgroundColor: '#fff',
     paddingVertical: 16,

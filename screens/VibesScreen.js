@@ -105,6 +105,11 @@ export default function VibesScreen({ onGameOpenChange }) {
     setActiveGame(game);
   };
 
+  const closeGame = () => {
+    onGameOpenChange?.(false);
+    setActiveGame(null);
+  };
+
   useEffect(() => {
     onGameOpenChange?.(Boolean(activeGame));
 
@@ -116,7 +121,7 @@ export default function VibesScreen({ onGameOpenChange }) {
   // If a game is open, render it full-screen
   if (activeGame) {
     const G = activeGame.Component;
-    return <G onClose={() => setActiveGame(null)} gradient={activeGame.gradient} />;
+    return <G onClose={closeGame} gradient={activeGame.gradient} />;
   }
 
   const filteredGames = moodFilter

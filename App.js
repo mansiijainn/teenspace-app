@@ -177,9 +177,9 @@ function MainApp({ username, user, isEmailVerified, onRefreshUser }) {
             blur: () => setSpacesOpen(false),
           }}
           options={{
-            tabBarLabel: 'spaces',
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />
+            tabBarLabel: 'home',
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="home-outline" size={22} color={color} />
             ),
           }}
         >
@@ -211,16 +211,26 @@ function MainApp({ username, user, isEmailVerified, onRefreshUser }) {
           options={{
             tabBarLabel: 'journal',
             tabBarIcon: ({ color, focused }) => (
-              <View style={[
-                styles.centerTab,
-                { backgroundColor: focused ? theme.text : accentColor },
-              ]}>
-                <Ionicons name={focused ? 'book' : 'book-outline'} size={22} color={theme.card} />
-              </View>
+              <Ionicons name={focused ? 'book' : 'book-outline'} size={22} color={color} />
             ),
           }}
         >
           {() => <JournalScreen />}
+        </Tab.Screen>
+
+        <Tab.Screen
+          name="Vibes"
+          listeners={{
+            blur: () => setGameOpen(false),
+          }}
+          options={{
+            tabBarLabel: 'games',
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="grid-outline" size={22} color={color} />
+            ),
+          }}
+        >
+          {() => <VibesScreen onGameOpenChange={setGameOpen} />}
         </Tab.Screen>
 
         <Tab.Screen
@@ -233,21 +243,6 @@ function MainApp({ username, user, isEmailVerified, onRefreshUser }) {
           }}
         >
           {() => <HelpScreen />}
-        </Tab.Screen>
-
-        <Tab.Screen
-          name="Vibes"
-          listeners={{
-            blur: () => setGameOpen(false),
-          }}
-          options={{
-            tabBarLabel: 'vibes',
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'sparkles' : 'sparkles-outline'} size={22} color={color} />
-            ),
-          }}
-        >
-          {() => <VibesScreen onGameOpenChange={setGameOpen} />}
         </Tab.Screen>
 
         <Tab.Screen
@@ -817,14 +812,6 @@ const styles = StyleSheet.create({
   rejectionBox: { borderRadius: 14, borderWidth: 1, padding: 14, marginBottom: 12 },
   rejectionTitle: { color: '#dc2626', fontSize: 14, fontWeight: '800', marginBottom: 6 },
   rejectionText: { color: '#dc2626', fontSize: 13, lineHeight: 19 },
-  centerTab: {
-    width: 46,
-    height: 46,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: -14,
-  },
   resetScreen: { justifyContent: 'center', padding: 24 },
   resetCard: { borderRadius: 28, borderWidth: 1, padding: 22 },
   resetCopy: { fontSize: 14, lineHeight: 20, marginTop: -18, marginBottom: 18 },

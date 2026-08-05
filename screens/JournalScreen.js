@@ -8,12 +8,12 @@ import JournalEntryScreen from './JournalEntryScreen';
 import { recordMoodEntry } from '../utils/safetySignals';
 
 const MOODS = [
-  { key: 'soft', label: 'soft', icon: '♡', color: moodColors.soft },
-  { key: 'okay', label: 'okay', icon: '☻', color: moodColors.happy },
-  { key: 'low', label: 'low', icon: '☁', color: moodColors.sad },
-  { key: 'anxious', label: 'anxious', icon: '~', color: moodColors.anxious },
-  { key: 'angry', label: 'angry', icon: '!', color: moodColors.angry },
-  { key: 'numb', label: 'numb', icon: '·', color: moodColors.calm },
+  { key: 'soft', label: 'soft', icon: 'heart', color: moodColors.soft },
+  { key: 'okay', label: 'okay', icon: 'sunny', color: moodColors.happy },
+  { key: 'low', label: 'low', icon: 'rainy', color: moodColors.sad },
+  { key: 'anxious', label: 'anxious', icon: 'pulse', color: moodColors.anxious },
+  { key: 'angry', label: 'angry', icon: 'flash', color: moodColors.angry },
+  { key: 'numb', label: 'numb', icon: 'remove', color: moodColors.calm },
 ];
 
 export default function JournalScreen() {
@@ -179,7 +179,7 @@ export default function JournalScreen() {
                   ]}
                   onPress={() => setSelectedMood(mood.key)}
                 >
-                  <Text style={styles.moodIcon}>{mood.icon}</Text>
+                  <Ionicons name={mood.icon} size={20} color="#18151d" />
                   <Text style={styles.moodLabel}>{mood.label}</Text>
                 </TouchableOpacity>
               );
@@ -193,7 +193,7 @@ export default function JournalScreen() {
 
         {entries.length === 0 && (
           <View style={[styles.empty, { backgroundColor: theme.card, borderColor: theme.border }]}>
-            <Text style={styles.emptyEmoji}>✎</Text>
+            <Ionicons name="create-outline" size={34} color={accentColor} />
             <Text style={[styles.emptyTitle, { color: theme.text }]}>blank page energy</Text>
             <Text style={[styles.emptySubtext, { color: theme.subtext }]}>
               write messy. make it pink. doodle over it.{'\n'}this one's just yours.
@@ -220,7 +220,7 @@ export default function JournalScreen() {
           >
             <View style={styles.cardTop}>
               <View style={[styles.entryMood, { backgroundColor: getEntryMood(entry)?.color || accentColor }]}>
-                <Text style={styles.entryMoodText}>{getEntryMood(entry)?.icon || '♡'}</Text>
+                <Ionicons name={getEntryMood(entry)?.icon || 'heart'} size={16} color="#18151d" />
               </View>
               <View style={styles.cardCopy}>
                 <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>
@@ -262,12 +262,10 @@ const styles = StyleSheet.create({
   heroTitle: { color: '#18151d', fontSize: 28, lineHeight: 34, fontWeight: '900', maxWidth: 300 },
   moodRow: { gap: 10, paddingRight: 10, paddingBottom: 4 },
   moodBubble: { width: 74, height: 84, borderRadius: 34, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  moodIcon: { color: '#18151d', fontSize: 22, fontWeight: '900' },
   moodLabel: { color: '#18151d', fontSize: 11, fontWeight: '800', marginTop: 5 },
   heroAction: { height: 54, borderRadius: 22, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 },
   heroActionText: { fontSize: 14, fontWeight: '900' },
   empty: { alignItems: 'center', marginTop: 20, gap: 12, borderRadius: 30, borderWidth: 1, padding: 28 },
-  emptyEmoji: { fontSize: 42 },
   emptyTitle: { fontSize: 22, fontWeight: '900' },
   emptySubtext: { fontSize: 14, textAlign: 'center', lineHeight: 22, opacity: 0.6 },
   emptyBtn: { borderRadius: 14, paddingHorizontal: 24, paddingVertical: 14, marginTop: 8 },
@@ -284,7 +282,6 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   entryMood: { width: 52, height: 62, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
-  entryMoodText: { color: '#18151d', fontSize: 22, fontWeight: '900' },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   cardCopy: { flex: 1 },
   cardTitle: { fontSize: 16, fontWeight: '900', marginBottom: 4 },

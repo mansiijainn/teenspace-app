@@ -9,13 +9,13 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 
 const BOT_MESSAGES = {
-  self_harm: "hey, i noticed what you wrote and i just want to check in 💙 you don't have to go through this alone. please reach out to iCall at 9152987821 — they're really good listeners.",
-  bullying: "this isn't the kind of space we want to build here. everyone deserves to feel safe. let's keep it kind 🙏",
+  self_harm: "hey, i noticed what you wrote and i just want to check in. you don't have to go through this alone. please reach out to iCall at 9152987821. they're really good listeners.",
+  bullying: "this isn't the kind of space we want to build here. everyone deserves to feel safe. let's keep it kind.",
   hate_speech: "we don't allow hate speech here. this is a space for everyone, regardless of who they are.",
   sexual: "this content isn't appropriate for our community. let's keep this space safe for everyone.",
-  spam: "looks like spam! keep it real and authentic here 😊",
-  profanity: "hey, let's keep the language a little chill here. we're all friends 👋",
-  default: "that post went against our community guidelines. let's keep this a safe space for everyone 💙",
+  spam: 'looks like spam. keep it real and authentic here.',
+  profanity: "hey, let's keep the language a little chill here.",
+  default: "that post went against our community guidelines. let's keep this a safe space for everyone.",
 };
 
 function isValidUrl(text) {
@@ -204,12 +204,12 @@ export default function ChannelScreen({ channel, onBack, isEmailVerified = false
 
         if (modResult.category === 'self_harm') {
           Alert.alert(
-            'hey, we see you 💙',
-            "you don't have to go through this alone. please reach out to someone who can help:\n\n🆘 iCall: 9152987821\n🆘 Vandrevala Foundation: 1860-2662-345\n🆘 AASRA: 9820466627",
+            'hey, we see you',
+            "you don't have to go through this alone. please reach out to someone who can help:\n\niCall: 9152987821\nVandrevala Foundation: 1860-2662-345\nAASRA: 9820466627",
             [{ text: 'okay, thanks', style: 'cancel' }]
           );
         } else {
-          Alert.alert('🚫 post blocked', 'This goes against our community guidelines.', [{ text: 'understood' }]);
+          Alert.alert('post blocked', 'This goes against our community guidelines.', [{ text: 'understood' }]);
         }
         setNewPost('');
         setLoading(false);
@@ -284,7 +284,7 @@ export default function ChannelScreen({ channel, onBack, isEmailVerified = false
           style={[styles.docBubble, { borderColor: isMe ? 'rgba(255,255,255,0.3)' : accentColor }]}
           onPress={() => Linking.openURL(post.media_url)}
         >
-          <Text style={styles.docIcon}>📄</Text>
+          <Ionicons name="document-text-outline" size={20} color={isMe ? '#fff' : accentColor} />
           <Text style={[styles.docName, { color: isMe ? '#fff' : accentColor }]} numberOfLines={1}>
             {post.content || 'document'}
           </Text>
@@ -301,7 +301,7 @@ export default function ChannelScreen({ channel, onBack, isEmailVerified = false
             style={[styles.linkPreview, { borderColor: isMe ? 'rgba(255,255,255,0.3)' : accentColor }]}
             onPress={() => Linking.openURL(post.media_url)}
           >
-            <Text style={styles.linkIcon}>🔗</Text>
+            <Ionicons name="link-outline" size={16} color={isMe ? 'rgba(255,255,255,0.8)' : accentColor} />
             <Text style={[styles.linkUrl, { color: isMe ? 'rgba(255,255,255,0.8)' : accentColor }]} numberOfLines={1}>
               {post.media_url}
             </Text>
@@ -324,7 +324,7 @@ export default function ChannelScreen({ channel, onBack, isEmailVerified = false
         <View key={post.id} style={styles.botRow}>
           <View style={styles.botBubble}>
             <View style={styles.botHeader}>
-              <Text style={styles.botIcon}>🛡️</Text>
+              <Ionicons name="shield-checkmark-outline" size={15} color="#60a5fa" />
               <Text style={styles.botName}>safebot</Text>
               <View style={styles.botBadge}>
                 <Text style={styles.botBadgeText}>bot</Text>
@@ -371,9 +371,10 @@ export default function ChannelScreen({ channel, onBack, isEmailVerified = false
       >
         <View style={[styles.header, { borderBottomColor: theme.border }]}>
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
-            <Text style={[styles.backText, { color: accentColor }]}>← back</Text>
+            <Ionicons name="chevron-back" size={18} color={accentColor} />
+            <Text style={[styles.backText, { color: accentColor }]}>back</Text>
           </TouchableOpacity>
-          <Text style={[styles.channelTitle, { color: theme.text }]}>{channel.emoji} {channel.name}</Text>
+          <Text style={[styles.channelTitle, { color: theme.text }]}>{channel.name}</Text>
           <View style={{ width: 60 }} />
         </View>
 
@@ -395,7 +396,7 @@ export default function ChannelScreen({ channel, onBack, isEmailVerified = false
         >
           {posts.length === 0 && (
             <View style={styles.empty}>
-              <Text style={styles.emptyEmoji}>👻</Text>
+              <Ionicons name="chatbubble-ellipses-outline" size={42} color={theme.subtext} />
               <Text style={[styles.emptyText, { color: theme.text }]}>no posts yet</Text>
               <Text style={[styles.emptySubtext, { color: theme.subtext }]}>be the first one to share something</Text>
             </View>
@@ -420,7 +421,7 @@ export default function ChannelScreen({ channel, onBack, isEmailVerified = false
             onPress={submitPost}
             disabled={!newPost.trim() || loading || uploadingMedia || !isEmailVerified}
           >
-            <Text style={styles.postButtonText}>↑</Text>
+            <Ionicons name="arrow-up" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -439,14 +440,13 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
   },
-  backButton: { width: 60 },
+  backButton: { width: 60, flexDirection: 'row', alignItems: 'center' },
   backText: { fontSize: 15 },
   channelTitle: { fontSize: 17, fontWeight: '600' },
   viewerNotice: { borderWidth: 1, borderRadius: 20, padding: 12, marginHorizontal: 12, marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 8 },
   viewerNoticeText: { flex: 1, fontSize: 12, lineHeight: 17, fontWeight: '800' },
   posts: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
   empty: { alignItems: 'center', marginTop: 80 },
-  emptyEmoji: { fontSize: 48, marginBottom: 12 },
   emptyText: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
   emptySubtext: { fontSize: 14 },
   botRow: { alignItems: 'center', marginBottom: 12, paddingHorizontal: 8 },
@@ -459,7 +459,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   botHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-  botIcon: { fontSize: 14 },
   botName: { color: '#60a5fa', fontSize: 13, fontWeight: '700' },
   botBadge: { backgroundColor: '#1e40af', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   botBadgeText: { color: '#93c5fd', fontSize: 10, fontWeight: '700' },
@@ -478,16 +477,13 @@ const styles = StyleSheet.create({
   bubbleTimeMe: { color: 'rgba(255,255,255,0.5)', textAlign: 'right' },
   mediaImage: { width: 200, height: 200, borderRadius: 12, marginBottom: 4 },
   docBubble: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 10, borderRadius: 10, borderWidth: 1, marginBottom: 4 },
-  docIcon: { fontSize: 20 },
   docName: { flex: 1, fontSize: 13, fontWeight: '600' },
   docOpen: { fontSize: 11 },
   linkPreview: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 8, borderRadius: 10, borderWidth: 1, marginTop: 6 },
-  linkIcon: { fontSize: 14 },
   linkUrl: { flex: 1, fontSize: 12 },
   inputContainer: { flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 12, borderTopWidth: 1, gap: 8, alignItems: 'flex-end' },
   mediaBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   input: { flex: 1, borderRadius: 22, paddingHorizontal: 16, paddingVertical: 12, fontSize: 15, borderWidth: 1, maxHeight: 100 },
   postButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   postButtonDisabled: { opacity: 0.4 },
-  postButtonText: { color: '#fff', fontSize: 20, fontWeight: '700' },
 });

@@ -100,7 +100,7 @@ export async function moderatePost(content) {
 export function getViolationMessage(result) {
   switch (result.category) {
     case 'self_harm':
-      return "we care about you 💙 if you're struggling, please reach out to iCall at 9152987821 — they're really good listeners.";
+      return "we care about you. if you're struggling, please reach out to iCall at 9152987821. they're really good listeners.";
     case 'bullying':
       return "let's keep this space kind. targeted attacks aren't allowed here.";
     case 'hate_speech':
@@ -110,7 +110,7 @@ export function getViolationMessage(result) {
     case 'spam':
       return "looks like spam. keep it real!";
     case 'profanity':
-      return "watch the language a little — keep it chill.";
+      return "watch the language a little. keep it chill.";
     default:
       return "this post goes against our community guidelines.";
   }

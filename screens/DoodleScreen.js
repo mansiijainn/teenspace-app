@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useRef } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
 
@@ -96,7 +97,10 @@ export default function DoodleScreen({ onSave, onClose }) {
         <TouchableOpacity onPress={onClose}>
           <Text style={styles.cancelBtn}>cancel</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>doodle 🎨</Text>
+        <View style={styles.headerTitleRow}>
+          <Ionicons name="brush-outline" size={18} color="#fff" />
+          <Text style={styles.headerTitle}>doodle</Text>
+        </View>
         <TouchableOpacity onPress={handleSave}>
           <Text style={[styles.saveBtn, { color: accentColor }]}>add to entry</Text>
         </TouchableOpacity>
@@ -213,6 +217,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#333',
   },
   cancelBtn: { color: '#888', fontSize: 15 },
+  headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   headerTitle: { color: '#fff', fontSize: 16, fontWeight: '700' },
   saveBtn: { fontSize: 15, fontWeight: '700' },
   canvas: {

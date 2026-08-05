@@ -73,7 +73,7 @@ export async function savePrefs(prefs) {
 
 // ── Notification content (rotating messages) ─────────────────────────────────
 const CHECK_IN_MESSAGES = [
-  { title: 'morning ☼',          body: 'how we feeling today?' },
+  { title: 'morning',            body: 'how we feeling today?' },
   { title: 'hey you',             body: 'quick mood check — what\'s the vibe?' },
   { title: 'good morning',        body: 'one word for today?' },
   { title: 'time to check in',    body: 'how\'s your head this morning?' },

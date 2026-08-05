@@ -8,6 +8,7 @@ import { useState, useRef, useCallback } from 'react';
 import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../supabase';
 import { useTheme } from '../context/ThemeContext';
 
@@ -446,18 +447,22 @@ export default function JournalEntryScreen({ entry, onClose }) {
         {/* Header */}
         <View style={[styles.header, { borderBottomColor: theme.border }]}>
           <TouchableOpacity onPress={onClose}>
-            <Text style={[styles.headerBtn, { color: theme.subtext }]}>← back</Text>
+            <View style={styles.headerBack}>
+              <Ionicons name="chevron-back" size={18} color={theme.subtext} />
+              <Text style={[styles.headerBtn, { color: theme.subtext }]}>back</Text>
+            </View>
           </TouchableOpacity>
           <View style={styles.headerRight}>
             <TouchableOpacity onPress={pickPhoto}>
-              <Text style={[styles.headerAction, { color: theme.subtext }]}>📎</Text>
+              <Ionicons name="attach-outline" size={22} color={theme.subtext} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setDrawMode(v => !v)}
               style={[styles.modeToggle, { backgroundColor: drawMode ? accentColor : theme.card, borderColor: drawMode ? accentColor : theme.border }]}
             >
+              <Ionicons name="pencil-outline" size={13} color={drawMode ? '#fff' : theme.subtext} />
               <Text style={[styles.modeToggleText, { color: drawMode ? '#fff' : theme.subtext }]}>
-                {drawMode ? '✏︎ draw on' : '✏︎ draw'}
+                {drawMode ? 'draw on' : 'draw'}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={save} disabled={saving}>
@@ -531,10 +536,10 @@ export default function JournalEntryScreen({ entry, onClose }) {
 const styles = StyleSheet.create({
   container:       { flex: 1 },
   header:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 0.5 },
+  headerBack:      { flexDirection: 'row', alignItems: 'center' },
   headerBtn:       { fontSize: 15 },
   headerRight:     { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  headerAction:    { fontSize: 18 },
-  modeToggle:      { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 0.5 },
+  modeToggle:      { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 0.5 },
   modeToggleText:  { fontSize: 13, fontWeight: '600' },
   saveBtn:         { fontSize: 15, fontWeight: '700' },
 

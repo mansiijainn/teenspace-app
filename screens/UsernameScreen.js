@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../supabase';
 import { useTheme } from '../context/ThemeContext';
 
@@ -53,7 +54,9 @@ export default function UsernameScreen({ onDone }) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.emoji}>🎭</Text>
+          <View style={[styles.identityIcon, { backgroundColor: accentColor + '24' }]}>
+            <Ionicons name="person-circle-outline" size={54} color={accentColor} />
+          </View>
           <Text style={[styles.title, { color: theme.text }]}>pick your identity</Text>
           <Text style={[styles.subtitle, { color: theme.subtext }]}>
             this is how everyone will know you.{'\n'}stay anonymous, stay real.
@@ -84,7 +87,7 @@ export default function UsernameScreen({ onDone }) {
             disabled={loading || username.trim().length < 3}
           >
             <Text style={styles.buttonText}>
-              {loading ? 'setting up...' : "let's go →"}
+              {loading ? 'setting up...' : "let's go"}
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -103,7 +106,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 40,
   },
-  emoji: { fontSize: 64, marginBottom: 24 },
+  identityIcon: { width: 82, height: 82, borderRadius: 30, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 12, textAlign: 'center' },
   subtitle: { fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: 40 },
   input: {
